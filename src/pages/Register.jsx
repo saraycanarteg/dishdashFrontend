@@ -1,55 +1,90 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ChefHat, Mail, Lock, AlertCircle } from 'lucide-react';
+import { ChefHat, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
-const Login = () => {
+const Register = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { register } = useAuth();
   
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const validateForm = () => {
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Por favor completa todos los campos');
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Por favor ingresa un email válido');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
 
-    // Validación básica
-    if (!email || !password) {
-      setError('Por favor completa todos los campos');
-      setLoading(false);
+    if (!validateForm()) {
       return;
     }
 
+    setLoading(true);
+
     try {
-      const result = await login(email, password);
+      const result = await register(formData.email, formData.password, formData.name);
       
-      // Redirigir según el rol del usuario
+      // Registro exitoso - auto-login y redirigir según el rol
+      // Los clientes registrados siempre tienen rol 'client'
       if (result.user.role === 'chef') {
         navigate('/calendar');
-      } else if (result.user.role === 'client') {
+      } else {
         navigate('/recipes-menus');
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.message || 'Email o contraseña incorrectos');
+      console.error('Register error:', err);
+      setError(err.message || 'Error al crear la cuenta. El email podría estar en uso.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleRegister = () => {
     api.auth.googleAuth();
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#9FB9B3' }}>
+    <div className="min-h-screen flex items-center justify-center py-8" style={{ backgroundColor: '#9FB9B3' }}>
       <div className="rounded-3xl shadow-2xl p-10 max-w-md w-full" style={{ backgroundColor: '#ffffff' }}>
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-6">
           <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: '#E8D5C7' }}>
             <ChefHat size={40} style={{ color: '#9FB9B3' }} />
           </div>
@@ -57,11 +92,11 @@ const Login = () => {
             DishDash
           </h1>
           <p className="text-sm mt-2" style={{ color: '#B8C9D0' }}>
-            Sistema de gestión de cocina
+            Crear cuenta nueva
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleRegister} className="space-y-4">
           {/* Error message */}
           {error && (
             <div className="p-3 rounded-lg flex items-center gap-2" style={{ backgroundColor: '#FFE5E5', color: '#D32F2F' }}>
@@ -69,6 +104,26 @@ const Login = () => {
               <span className="text-sm">{error}</span>
             </div>
           )}
+
+          {/* Name field */}
+          <div>
+            <label className="block text-sm font-semibold mb-2" style={{ color: '#9FB9B3' }}>
+              Nombre completo
+            </label>
+            <div className="relative">
+              <User size={18} className="absolute left-3 top-3.5" style={{ color: '#B8C9D0' }} />
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Tu nombre"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-70"
+                style={{ borderColor: '#E8D5C7', color: '#9FB9B3' }}
+                disabled={loading}
+              />
+            </div>
+          </div>
 
           {/* Email field */}
           <div>
@@ -79,8 +134,9 @@ const Login = () => {
               <Mail size={18} className="absolute left-3 top-3.5" style={{ color: '#B8C9D0' }} />
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 placeholder="tu@email.com"
                 className="w-full pl-10 pr-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-70"
                 style={{ borderColor: '#E8D5C7', color: '#9FB9B3' }}
@@ -98,9 +154,10 @@ const Login = () => {
               <Lock size={18} className="absolute left-3 top-3.5" style={{ color: '#B8C9D0' }} />
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Mínimo 6 caracteres"
                 className="w-full pl-10 pr-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-70"
                 style={{ borderColor: '#E8D5C7', color: '#9FB9B3' }}
                 disabled={loading}
@@ -108,11 +165,39 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Login button */}
+          {/* Confirm Password field */}
+          <div>
+            <label className="block text-sm font-semibold mb-2" style={{ color: '#9FB9B3' }}>
+              Confirmar contraseña
+            </label>
+            <div className="relative">
+              <Lock size={18} className="absolute left-3 top-3.5" style={{ color: '#B8C9D0' }} />
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirma tu contraseña"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 focus:outline-none focus:border-opacity-70"
+                style={{ borderColor: '#E8D5C7', color: '#9FB9B3' }}
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          {/* Info message */}
+          <div className="p-3 rounded-lg flex items-start gap-2" style={{ backgroundColor: '#E8F5E9', color: '#2E7D32' }}>
+            <CheckCircle size={18} className="mt-0.5 flex-shrink-0" />
+            <span className="text-xs">
+              Al registrarte, serás creado como cliente. Podrás ver recetas y crear cotizaciones.
+            </span>
+          </div>
+
+          {/* Register button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl font-semibold transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: '#9FB9B3', color: '#ffffff' }}
             onMouseEnter={(e) => {
               if (!loading) e.currentTarget.style.backgroundColor = '#B8C9D0';
@@ -121,7 +206,7 @@ const Login = () => {
               if (!loading) e.currentTarget.style.backgroundColor = '#9FB9B3';
             }}
           >
-            {loading ? 'Ingresando...' : 'Ingresar'}
+            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
 
           {/* Divider */}
@@ -137,7 +222,7 @@ const Login = () => {
           {/* Google button */}
           <button
             type="button"
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleRegister}
             disabled={loading}
             className="w-full py-3 rounded-xl font-semibold transition-all border-2 flex items-center justify-center gap-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ borderColor: '#E8D5C7', color: '#6B7280', backgroundColor: '#ffffff' }}
@@ -151,16 +236,16 @@ const Login = () => {
             Continuar con Google
           </button>
 
-          {/* Register link */}
+          {/* Login link */}
           <div className="text-center mt-4">
             <p className="text-sm" style={{ color: '#B8C9D0' }}>
-              ¿No tienes cuenta?{' '}
+              ¿Ya tienes cuenta?{' '}
               <Link 
-                to="/register" 
+                to="/login" 
                 className="font-semibold hover:underline"
                 style={{ color: '#9FB9B3' }}
               >
-                Regístrate aquí
+                Inicia sesión
               </Link>
             </p>
           </div>
@@ -170,4 +255,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

@@ -14,6 +14,7 @@ import {
   LogOut,
   BookOpen
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const menuConfig = {
   chef: [
@@ -65,13 +66,16 @@ const menuConfig = {
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
 
-  const [userType, setUserType] = useState('chef');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // Usar el rol del usuario autenticado
+  const userType = user?.role || 'client';
   const currentMenu = menuConfig[userType] || [];
 
   const handleLogout = () => {
+    logout();
     navigate('/login');
   };
 
@@ -136,11 +140,11 @@ const Dashboard = () => {
         <div className="p-4 border-t" style={{ borderColor: '#F1F1F1' }}>
           <div className={`flex items-center ${sidebarOpen ? 'gap-3' : 'justify-center'}`}>
             <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold" style={{ backgroundColor: '#D4B5A5', color: 'white' }}>
-              {userType === 'chef' ? 'C' : 'U'}
+              {user?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
             {sidebarOpen && (
               <div>
-                <p className="text-sm font-medium" style={{ color: '#6B7280' }}>Usuario Demo</p>
+                <p className="text-sm font-medium" style={{ color: '#6B7280' }}>{user?.name || 'Usuario'}</p>
                 <p className="text-xs" style={{ color: '#9FB9B3' }}>
                   {userType === 'chef' ? 'Chef' : 'Cliente'}
                 </p>
@@ -159,18 +163,14 @@ const Dashboard = () => {
             <h2 className="text-xl font-semibold" style={{ color: '#9FB9B3' }}>
               {currentMenu.flatMap(s => s.items).find(m => m.path === location.pathname)?.label || 'Dashboard'}
             </h2>
-            <button
-              onClick={() => setUserType(userType === 'chef' ? 'client' : 'chef')}
-              className="mt-1 text-xs px-2 py-1 rounded"
-              style={{ backgroundColor: '#E8D5C7', color: '#9FB9B3' }}
-            >
-              Cambiar a {userType === 'chef' ? 'Cliente' : 'Chef'}
-            </button>
+            <p className="text-xs mt-1" style={{ color: '#B8C9D0' }}>
+              {userType === 'chef' ? 'Acceso completo' : 'Acceso limitado'}
+            </p>
           </div>
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-md text-white"
+            className="flex items-center gap-2 px-4 py-2 rounded-md text-white hover:opacity-90 transition-opacity"
             style={{ backgroundColor: '#D4B5A5' }}
           >
             <LogOut size={16} />
