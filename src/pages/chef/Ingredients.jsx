@@ -77,27 +77,33 @@ const Ingredients = () => {
 
   const handleCreateIngredient = async (formData) => {
     try {
-      const newIngredient = await ingredientService.create(formData);
-      setIngredients(prev => [...prev, newIngredient]);
-      alert('Ingrediente creado exitosamente');
+      await ingredientService.create(formData);
+      showToast('Ingrediente creado correctamente', 'success');
+      await loadIngredients();
+      return { success: true };
     } catch (err) {
-      console.error('Error creando ingrediente:', err);
-      alert('Error al crear el ingrediente: ' + (err.message || 'Error desconocido'));
-      throw err;
+      const fieldErrors = {};
+      const msg = err?.message || 'Error al crear el ingrediente';
+      if (/duplicate key|E11000|productId/i.test(msg)) {
+        fieldErrors.productId = 'Este código ya existe';
+      }
+      return { success: false, fieldErrors, message: msg };
     }
   };
 
   const handleUpdateIngredient = async (formData) => {
     try {
-      const updatedIngredient = await ingredientService.update(formData.productId, formData);
-      setIngredients(prev => 
-        prev.map(ing => ing.productId === formData.productId ? updatedIngredient : ing)
-      );
-      alert('Ingrediente actualizado exitosamente');
+      await ingredientService.update(formData.productId, formData);
+      showToast('Ingrediente actualizado', 'success');
+      await loadIngredients();
+      return { success: true };
     } catch (err) {
-      console.error('Error actualizando ingrediente:', err);
-      alert('Error al actualizar el ingrediente: ' + (err.message || 'Error desconocido'));
-      throw err;
+      const fieldErrors = {};
+      const msg = err?.message || 'Error al actualizar el ingrediente';
+      if (/duplicate key|E11000|productId/i.test(msg)) {
+        fieldErrors.productId = 'Este código ya existe';
+      }
+      return { success: false, fieldErrors, message: msg };
     }
   };
 
