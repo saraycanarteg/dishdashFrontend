@@ -251,9 +251,12 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
             <CloseIcon />
           </button>
         </div>
-
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <label htmlFor="name" className="block font-medium mb-1">
+            Nombre de la receta *
+          </label>
           <input
+            id="name"
             name="name"
             placeholder="Nombre de la receta *"
             value={form.name}
@@ -263,13 +266,16 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           />
 
           <div className="grid grid-cols-2 gap-4">
+            <label htmlFor="category" className="block font-medium mb-1">
+              Categoría
+            </label>
             <select
+              id="category"
               name="category"
               value={form.category}
               onChange={handleChange}
               className="border rounded-md px-3 py-2"
             >
-              <label className="sr-only" htmlFor="category">Categoría</label>
               <option value="cocktail">Cocktail</option>
               <option value="appetizer">Aperitivo</option>
               <option value="main_course">Plato principal</option>
@@ -277,8 +283,11 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
               <option value="beverage">Bebida</option>
             </select>
 
-            <label htmlFor="servings">Porciones</label>
+            <label htmlFor="servings" className="block font-medium mb-1">
+              Porciones
+            </label>
             <input
+              id="servings"
               type="number"
               name="servings"
               min="1"
@@ -288,8 +297,11 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
             />
           </div>
 
-          <label htmlFor="description">Descripción</label>
+          <label htmlFor="description" className="block font-medium mb-1">
+            Descripción
+          </label>
           <textarea
+            id="description"
             name="description"
             rows="3"
             placeholder="Descripción"
@@ -301,8 +313,15 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           <div>
             <h4 className="font-medium mb-2">Ingredientes</h4>
 
+            <label
+              htmlFor="select-ingredient"
+              className="block font-medium mb-1"
+            >
+              Seleccionar ingrediente
+            </label>
             <div className="flex gap-2 mb-3">
               <select
+                id="select-ingredient"
                 value={selectedIngredientId}
                 onChange={(e) => setSelectedIngredientId(e.target.value)}
                 className="border rounded-md px-3 py-2 flex-grow"
@@ -326,12 +345,16 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
             {form.ingredients.map((ing, i) => (
               <div key={i} className="grid grid-cols-4 gap-2 mb-2">
                 <input
+                  id={`ingredient-name-${i}`}
                   value={ing.ingredientName}
                   disabled
                   className="border px-2 py-1 rounded bg-gray-100"
                 />
-                <label className="sr-only" htmlFor={`quantity-${i}`}>Cantidad</label>
+                <label htmlFor={`quantity-${i}`} className="sr-only">
+                  Cantidad
+                </label>
                 <input
+                  id={`quantity-${i}`}
                   type="number"
                   placeholder="Cantidad"
                   value={ing.quantity}
@@ -340,8 +363,11 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                   }
                   className="border px-2 py-1 rounded"
                 />
-                <label className="sr-only" htmlFor={`unit-${i}`}>Unidad</label>
+                <label htmlFor={`unit-${i}`} className="sr-only">
+                  Unidad
+                </label>
                 <input
+                  id={`unit-${i}`}
                   placeholder="Unidad"
                   value={ing.unit}
                   onChange={(e) => updateIngredient(i, "unit", e.target.value)}
@@ -371,7 +397,12 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
             <h4 className="font-medium mb-2">Instrucciones</h4>
             {form.instructions.map((s, i) => (
               <div key={i} className="flex gap-2 items-center mb-2">
+                <label
+                  htmlFor={`instruction-${i}`}
+                  className="sr-only"
+                >{`Paso ${i + 1}`}</label>
                 <input
+                  id={`instruction-${i}`}
                   placeholder={`Paso ${i + 1}`}
                   value={s}
                   onChange={(e) => updateInstruction(i, e.target.value)}
