@@ -265,7 +265,7 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
             required
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-4">
             <label htmlFor="category" className="block font-medium">
               Categoría
             </label>
