@@ -266,7 +266,7 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           />
 
           <div className="grid grid-cols-2 gap-4">
-            <label htmlFor="category" className="block font-medium mb-1">
+            <label htmlFor="category" className="block font-medium">
               Categoría
             </label>
             <select
@@ -283,7 +283,7 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
               <option value="beverage">Bebida</option>
             </select>
 
-            <label htmlFor="servings" className="block font-medium mb-1">
+            <label htmlFor="servings" className="block font-medium ">
               Porciones
             </label>
             <input
