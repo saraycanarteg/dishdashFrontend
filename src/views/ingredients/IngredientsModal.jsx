@@ -23,7 +23,8 @@ const IngredientsModal = ({
     size: '',
     sizeUnit: 'ml',
     price: '',
-    supplier: ''
+    supplier: '',
+    availableUnits: 0
   });
 
   const [errors, setErrors] = useState({});
@@ -41,7 +42,8 @@ const IngredientsModal = ({
         size: initialData.size ?? '',
         sizeUnit: initialData.sizeUnit || 'ml',
         price: initialData.price ?? '',
-        supplier: initialData.supplier || ''
+        supplier: initialData.supplier || '',
+        availableUnits: initialData.availableUnits ?? 0
       });
     } else {
       resetForm();
@@ -60,7 +62,8 @@ const IngredientsModal = ({
       size: '',
       sizeUnit: 'ml',
       price: '',
-      supplier: ''
+      supplier: '',
+      availableUnits: 0
     });
     setErrors({});
     setGeneralError('');
@@ -100,7 +103,8 @@ const IngredientsModal = ({
       const payload = {
         ...formData,
         size: formData.size === '' ? 0 : Number(formData.size),
-        price: formData.price === '' ? 0 : Number(formData.price)
+        price: formData.price === '' ? 0 : Number(formData.price),
+        availableUnits: Number(formData.availableUnits || 0) 
       };
       const result = await onSubmit(payload);
 
