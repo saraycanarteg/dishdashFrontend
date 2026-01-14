@@ -28,8 +28,8 @@ const menuConfig = {
       category: 'Gestión de Contenido',
       items: [
         { id: 'clients', label: 'Clientes', icon: Users, path: '/clients' },
-        { id: 'recipes', label: 'Recetas', icon: ChefHat, path: '/recipes' },
-        { id: 'ingredients', label: 'Ingredientes', icon: Carrot, path: '/ingredients' }
+        { id: 'recipes', label: 'Gestión de Recetas', icon: ChefHat, path: '/recipes' },
+        { id: 'ingredients', label: 'Gestión de Ingredientes', icon: Carrot, path: '/ingredients' }
       ]
     },
     {
@@ -160,12 +160,9 @@ const Dashboard = () => {
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b bg-white" style={{ borderColor: '#E8D5C7' }}>
           <div>
-            <h2 className="text-xxl font-bold" style={{ color: '#9FB9B3' }}>
+            <h2 className="text-5xl font-bold" style={{ color: '#9FB9B3' }}>
               {currentMenu.flatMap(s => s.items).find(m => m.path === location.pathname)?.label || 'Dashboard'}
             </h2>
-            <p className="text-xs mt-1" style={{ color: '#B8C9D0' }}>
-              {userType === 'chef' ? 'Acceso completo' : 'Acceso limitado'}
-            </p>
           </div>
 
           <button
