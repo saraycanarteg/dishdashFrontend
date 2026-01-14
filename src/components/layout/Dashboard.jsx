@@ -160,7 +160,7 @@ const Dashboard = () => {
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b bg-white" style={{ borderColor: '#E8D5C7' }}>
           <div>
-            <h2 className="text-5xl font-bold" style={{ color: '#9FB9B3' }}>
+            <h2 className="text-3xl font-bold" style={{ color: '#9FB9B3' }}>
               {currentMenu.flatMap(s => s.items).find(m => m.path === location.pathname)?.label || 'Dashboard'}
             </h2>
           </div>

@@ -4,6 +4,8 @@ import IngredientsStats from '../../views/ingredients/IngredientsStats';
 import IngredientsFilters from '../../views/ingredients/IngredientsFilters';
 import IngredientsTable from '../../views/ingredients/IngredientsTable';
 import IngredientsModal from '../../views/ingredients/IngredientsModal';
+import ConfirmationModal from '../../components/ui/ConfirmationModal';
+import Toast from '../../components/ui/Toast';
 
 const Ingredients = () => {
   const [ingredients, setIngredients] = useState([]);
@@ -20,6 +22,9 @@ const Ingredients = () => {
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const [toast, setToast] = useState(null);
+  const [confirm, setConfirm] = useState({ open: false, action: null, payload: null, loading: false });
 
   const categories = ['all', 'Licores', 'Insumos', 'Adicionales', 'Bebidas', 'Hierbas y Especias', 'Harinas y Cereales', 'Frutas y Vegetales','Proteínas'];
 
@@ -114,41 +119,35 @@ const Ingredients = () => {
     }
   };
 
-  const handleArchive = async (productId) => {
-    if (!confirm('¿Estás seguro de que deseas archivar este ingrediente?')) return;
+  const showToast = (message, type = 'success') => {
+    const t = { id: Date.now(), message, type };
+    setToast(t);
+  };
 
-    try {
-      await ingredientService.delete(productId);
-      setIngredients(prev =>
-        prev.map(ing => 
-          ing.productId === productId 
-            ? { ...ing, isActive: false, deletedAt: new Date() } 
-            : ing
-        )
-      );
-      alert('Ingrediente archivado exitosamente');
-    } catch (err) {
-      console.error('Error archivando ingrediente:', err);
-      alert('Error al archivar el ingrediente: ' + (err.message || 'Error desconocido'));
-    }
+  const handleArchive = async (productId) => {
+    setConfirm({ open: true, action: 'archive', payload: productId, loading: false });
   };
 
   const handleRestore = async (productId) => {
-    if (!confirm('¿Estás seguro de que deseas restaurar este ingrediente?')) return;
+    setConfirm({ open: true, action: 'restore', payload: productId, loading: false });
+  };
 
+  const runConfirmedAction = async () => {
+    const { action, payload } = confirm;
+    setConfirm(prev => ({ ...prev, loading: true }));
     try {
-      await ingredientService.restore(productId);
-      setIngredients(prev =>
-        prev.map(ing => 
-          ing.productId === productId 
-            ? { ...ing, isActive: true, deletedAt: null } 
-            : ing
-        )
-      );
-      alert('Ingrediente restaurado exitosamente');
+      if (action === 'archive') {
+        await ingredientService.delete(payload); // usa tu servicio
+        showToast('Ingrediente archivado', 'success');
+      } else if (action === 'restore') {
+        await ingredientService.restore(payload);
+        showToast('Ingrediente restaurado', 'success');
+      }
+      await loadIngredients(); // refrescar lista
     } catch (err) {
-      console.error('Error restaurando ingrediente:', err);
-      alert('Error al restaurar el ingrediente: ' + (err.message || 'Error desconocido'));
+      showToast(err.message || 'Error en la operación', 'error');
+    } finally {
+      setConfirm({ open: false, action: null, payload: null, loading: false });
     }
   };
 
@@ -190,44 +189,60 @@ const Ingredients = () => {
   }
 
   return (
-    <div className="h-full">
-      <IngredientsStats
-        totalProducts={activeIngredients.length}
-        totalValue={totalValue}
-        totalCategories={uniqueCategories}
+    <>
+      <div className="h-full">
+        <IngredientsStats
+          totalProducts={activeIngredients.length}
+          totalValue={totalValue}
+          totalCategories={uniqueCategories}
+        />
+
+        <IngredientsFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onOpenModal={() => handleOpenModal()}
+          categories={categories}
+        />
+
+        <IngredientsTable
+          ingredients={currentItems}
+          onEdit={handleOpenModal}
+          onArchive={handleArchive}
+          onRestore={handleRestore}
+          viewMode={viewMode}
+          currentPage={currentPage}
+          totalItems={filteredIngredients.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
+
+        <IngredientsModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSubmit={handleSubmitModal}
+          initialData={editingIngredient}
+          categories={categories}
+        />
+      </div>
+
+      <ConfirmationModal
+        isOpen={confirm.open}
+        title={confirm.action === 'archive' ? 'Archivar ingrediente' : 'Restaurar ingrediente'}
+        message={confirm.action === 'archive' ? '¿Confirma archivar este ingrediente?' : '¿Confirma restaurar este ingrediente?'}
+        onConfirm={runConfirmedAction}
+        onCancel={() => setConfirm({ open: false, action: null, payload: null, loading: false })}
+        loading={confirm.loading}
       />
 
-      <IngredientsFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        onOpenModal={() => handleOpenModal()}
-        categories={categories}
+      <Toast
+        toast={toast}
+        onClose={() => setToast(null)}
       />
-
-      <IngredientsTable
-        ingredients={currentItems}
-        onEdit={handleOpenModal}
-        onArchive={handleArchive}
-        onRestore={handleRestore}
-        viewMode={viewMode}
-        currentPage={currentPage}
-        totalItems={filteredIngredients.length}
-        itemsPerPage={itemsPerPage}
-        onPageChange={setCurrentPage}
-      />
-
-      <IngredientsModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSubmit={handleSubmitModal}
-        initialData={editingIngredient}
-        categories={categories}
-      />
-    </div>
+    </>
   );
 };
 
