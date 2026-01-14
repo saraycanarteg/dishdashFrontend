@@ -1,4 +1,234 @@
+import React, { useState, useEffect } from 'react';
+import ingredientService from '../../services/ingredient';
+import IngredientsStats from '../../views/ingredients/IngredientsStats';
+import IngredientsFilters from '../../views/ingredients/IngredientsFilters';
+import IngredientsTable from '../../views/ingredients/IngredientsTable';
+import IngredientsModal from '../../views/ingredients/IngredientsModal';
+
 const Ingredients = () => {
-  return <div>Página de Ingredientes - Por implementar</div>;
+  const [ingredients, setIngredients] = useState([]);
+  const [filteredIngredients, setFilteredIngredients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [viewMode, setViewMode] = useState('active');
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingIngredient, setEditingIngredient] = useState(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const categories = ['all', 'Licores', 'Insumos', 'Adicionales', 'Bebidas', 'Hierbas y Especias', 'Harinas y Cereales', 'Frutas y Vegetales','Proteínas'];
+
+  useEffect(() => {
+    loadIngredients();
+  }, []);
+
+  useEffect(() => {
+    filterIngredients();
+  }, [ingredients, searchTerm, selectedCategory, viewMode]);
+
+  const loadIngredients = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await ingredientService.getAll();
+      setIngredients(data);
+    } catch (err) {
+      console.error('Error cargando ingredientes:', err);
+      setError('Error al cargar los ingredientes. Por favor, intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterIngredients = () => {
+    let filtered = ingredients;
+
+    filtered = filtered.filter(ing => 
+      viewMode === 'active' ? ing.isActive !== false : ing.isActive === false
+    );
+
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(ing => ing.category === selectedCategory);
+    }
+
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(ing =>
+        ing.name.toLowerCase().includes(search) ||
+        ing.productId.toLowerCase().includes(search) ||
+        ing.product.toLowerCase().includes(search) ||
+        ing.brand.toLowerCase().includes(search)
+      );
+    }
+
+    setFilteredIngredients(filtered);
+    setCurrentPage(1); 
+  };
+
+  const handleCreateIngredient = async (formData) => {
+    try {
+      const newIngredient = await ingredientService.create(formData);
+      setIngredients(prev => [...prev, newIngredient]);
+      alert('Ingrediente creado exitosamente');
+    } catch (err) {
+      console.error('Error creando ingrediente:', err);
+      alert('Error al crear el ingrediente: ' + (err.message || 'Error desconocido'));
+      throw err;
+    }
+  };
+
+  const handleUpdateIngredient = async (formData) => {
+    try {
+      const updatedIngredient = await ingredientService.update(formData.productId, formData);
+      setIngredients(prev => 
+        prev.map(ing => ing.productId === formData.productId ? updatedIngredient : ing)
+      );
+      alert('Ingrediente actualizado exitosamente');
+    } catch (err) {
+      console.error('Error actualizando ingrediente:', err);
+      alert('Error al actualizar el ingrediente: ' + (err.message || 'Error desconocido'));
+      throw err;
+    }
+  };
+
+  const handleOpenModal = (ingredient = null) => {
+    setEditingIngredient(ingredient);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingIngredient(null);
+  };
+
+  const handleSubmitModal = async (formData) => {
+    if (editingIngredient) {
+      await handleUpdateIngredient(formData);
+    } else {
+      await handleCreateIngredient(formData);
+    }
+  };
+
+  const handleArchive = async (productId) => {
+    if (!confirm('¿Estás seguro de que deseas archivar este ingrediente?')) return;
+
+    try {
+      await ingredientService.delete(productId);
+      setIngredients(prev =>
+        prev.map(ing => 
+          ing.productId === productId 
+            ? { ...ing, isActive: false, deletedAt: new Date() } 
+            : ing
+        )
+      );
+      alert('Ingrediente archivado exitosamente');
+    } catch (err) {
+      console.error('Error archivando ingrediente:', err);
+      alert('Error al archivar el ingrediente: ' + (err.message || 'Error desconocido'));
+    }
+  };
+
+  const handleRestore = async (productId) => {
+    if (!confirm('¿Estás seguro de que deseas restaurar este ingrediente?')) return;
+
+    try {
+      await ingredientService.restore(productId);
+      setIngredients(prev =>
+        prev.map(ing => 
+          ing.productId === productId 
+            ? { ...ing, isActive: true, deletedAt: null } 
+            : ing
+        )
+      );
+      alert('Ingrediente restaurado exitosamente');
+    } catch (err) {
+      console.error('Error restaurando ingrediente:', err);
+      alert('Error al restaurar el ingrediente: ' + (err.message || 'Error desconocido'));
+    }
+  };
+
+  // Calculate statistics
+  const activeIngredients = ingredients.filter(ing => ing.isActive !== false);
+  const totalValue = activeIngredients.reduce((sum, ing) => sum + (ing.price || 0), 0);
+  const uniqueCategories = new Set(activeIngredients.map(ing => ing.category)).size;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredIngredients.slice(indexOfFirstItem, indexOfLastItem);
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: '#9FB9B3' }}></div>
+          <p className="text-gray-600">Cargando ingredientes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={loadIngredients}
+            className="px-4 py-2 text-white rounded-md font-medium hover:opacity-90"
+            style={{ backgroundColor: '#9FB9B3' }}
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full">
+      <IngredientsStats
+        totalProducts={activeIngredients.length}
+        totalValue={totalValue}
+        totalCategories={uniqueCategories}
+      />
+
+      <IngredientsFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onOpenModal={() => handleOpenModal()}
+        categories={categories}
+      />
+
+      <IngredientsTable
+        ingredients={currentItems}
+        onEdit={handleOpenModal}
+        onArchive={handleArchive}
+        onRestore={handleRestore}
+        viewMode={viewMode}
+        currentPage={currentPage}
+        totalItems={filteredIngredients.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
+
+      <IngredientsModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmitModal}
+        initialData={editingIngredient}
+        categories={categories}
+      />
+    </div>
+  );
 };
+
 export default Ingredients;
