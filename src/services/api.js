@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configurar baseURL desde variables de entorno
-const API_BASE_URL = 'https://recipemanagement-caj9.onrender.com' || 'http://localhost:3007/dishdash';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3007/dishdash';
 
 // Crear instancia de axios
 const axiosInstance = axios.create({
