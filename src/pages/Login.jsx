@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { ChefHat, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -7,11 +7,31 @@ import api from '../services/api';
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [searchParams] = useSearchParams();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Manejar errores de Google OAuth desde los query params
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      const errorMessages = {
+        'missing_credentials': 'No se recibieron las credenciales de Google',
+        'parse_error': 'Error al procesar los datos de Google',
+        'incomplete_user': 'Los datos del usuario están incompletos',
+        'processing_error': 'Error al procesar la autenticación con Google',
+        'authentication_failed': 'Falló la autenticación con Google'
+      };
+      
+      setError(errorMessages[errorParam] || 'Error en la autenticación con Google');
+      
+      // Limpiar el error después de 5 segundos
+      setTimeout(() => setError(''), 5000);
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
