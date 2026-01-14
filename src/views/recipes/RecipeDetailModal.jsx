@@ -24,7 +24,6 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
         {/* Content */}
         <div className="space-y-4 text-sm">
           <p><strong>Categoría:</strong> {recipe.category || "—"}</p>
-          <p><strong>Tiempo:</strong> {recipe.time || "—"} min</p>
           <p><strong>Porciones:</strong> {recipe.servings || "—"}</p>
 
           <div>
@@ -63,6 +62,8 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
               )}
             </ol>
           </div>
+            <p><strong>Costo por Porciones:</strong> {recipe.costPerServing || "—"}</p>
+            <p><strong>Precio por porciones:</strong> {recipe.pricePerServing|| "—"}</p>
         </div>
 
         {/* Footer */}
