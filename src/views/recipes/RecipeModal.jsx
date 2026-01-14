@@ -269,13 +269,15 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
               onChange={handleChange}
               className="border rounded-md px-3 py-2"
             >
+              <label className="sr-only" htmlFor="category">Categoría</label>
               <option value="cocktail">Cocktail</option>
-              <option value="appetizer">Appetizer</option>
-              <option value="main_course">Main Course</option>
-              <option value="dessert">Dessert</option>
-              <option value="beverage">Beverage</option>
+              <option value="appetizer">Aperitivo</option>
+              <option value="main_course">Plato principal</option>
+              <option value="dessert">Postre</option>
+              <option value="beverage">Bebida</option>
             </select>
 
+            <label htmlFor="servings">Porciones</label>
             <input
               type="number"
               name="servings"
@@ -286,6 +288,7 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
             />
           </div>
 
+          <label htmlFor="description">Descripción</label>
           <textarea
             name="description"
             rows="3"
@@ -327,6 +330,7 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                   disabled
                   className="border px-2 py-1 rounded bg-gray-100"
                 />
+                <label className="sr-only" htmlFor={`quantity-${i}`}>Cantidad</label>
                 <input
                   type="number"
                   placeholder="Cantidad"
@@ -336,6 +340,7 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                   }
                   className="border px-2 py-1 rounded"
                 />
+                <label className="sr-only" htmlFor={`unit-${i}`}>Unidad</label>
                 <input
                   placeholder="Unidad"
                   value={ing.unit}
