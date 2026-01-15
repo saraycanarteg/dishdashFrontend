@@ -1,4 +1,5 @@
 import React from "react";
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 const RecipeDetailModal = ({ recipe, onClose }) => {
   if (!recipe) return null;
@@ -6,15 +7,15 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="bg-white rounded-xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-        
         {/* Image */}
         {recipe.imageUrl && (
           <div className="relative h-56 w-full">
             <img
-              src={recipe.imageUrl}
+              src={`${BACKEND_URL}${recipe.imageUrl}`}
               alt={recipe.name}
-              className="w-full h-full object-cover rounded-t-xl"
+              className="w-full h-48 object-cover rounded-md"
             />
+
             <button
               onClick={onClose}
               className="absolute top-3 right-3 bg-black/50 text-white rounded-full px-3 py-1 text-lg hover:bg-black/70"
@@ -68,9 +69,7 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
                     key={ing._id || ing.productId || i}
                     className="flex justify-between bg-gray-50 px-3 py-2 rounded-md text-sm"
                   >
-                    <span>
-                      {ing.ingredientName || ing.name}
-                    </span>
+                    <span>{ing.ingredientName || ing.name}</span>
                     <span className="text-gray-600">
                       {ing.quantity} {ing.unit}
                     </span>
@@ -88,9 +87,7 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
             <ol className="space-y-2 list-decimal list-inside text-gray-700">
               {recipe.instructions?.length > 0 ? (
                 recipe.instructions.map((step, i) => (
-                  <li key={i}>
-                    {typeof step === "string" ? step : step.step}
-                  </li>
+                  <li key={i}>{typeof step === "string" ? step : step.step}</li>
                 ))
               ) : (
                 <p className="text-gray-500">Sin instrucciones</p>
