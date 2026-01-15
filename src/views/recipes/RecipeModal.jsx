@@ -17,6 +17,19 @@ const CloseIcon = ({ className = "w-5 h-5" }) => (
     <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
+const UNIT_LABELS = {
+  g: "gramos",
+  kg: "kilogramos",
+  ml: "mililitros",
+  l: "litros",
+  oz: "onzas",
+  unit: "unidad",
+};
+
+const formatUnit = (unit) => {
+  if (!unit) return "";
+  return UNIT_LABELS[unit] ? `${unit} (${UNIT_LABELS[unit]})` : unit;
+};
 
 const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [form, setForm] = useState({
@@ -323,47 +336,65 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
               </div>
             </div>
 
-            {form.ingredients.map((ing, i) => (
-              <div key={i} className="grid grid-cols-4 gap-2 mb-2">
-                <input
-                  id={`ingredient-name-${i}`}
-                  value={ing.ingredientName}
-                  disabled
-                  className="border px-2 py-1 rounded bg-gray-100"
-                />
-                <label htmlFor={`quantity-${i}`} className="sr-only">
-                  Cantidad
-                </label>
-                <input
-                  id={`quantity-${i}`}
-                  type="number"
-                  placeholder="Cantidad"
-                  value={ing.quantity}
-                  onChange={(e) =>
-                    updateIngredient(i, "quantity", e.target.value)
-                  }
-                  className="border px-2 py-1 rounded"
-                />
-                <label htmlFor={`unit-${i}`} className="sr-only">
-                  Unidad
-                </label>
-                <input
-                  id={`unit-${i}`}
-                  placeholder="Unidad"
-                  value={ing.unit}
-                  onChange={(e) => updateIngredient(i, "unit", e.target.value)}
-                  className="border px-2 py-1 rounded"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeIngredient(i)}
-                  className="text-red-500 font-bold"
-                  title="Eliminar ingrediente"
-                >
-                  X
-                </button>
+            <div className="mt-4 space-y-3">
+              {/* Header */}
+              <div className="grid grid-cols-12 gap-3 text-sm font-semibold text-gray-600 px-2">
+                <div className="col-span-5">Ingrediente</div>
+                <div className="col-span-3">Cantidad</div>
+                <div className="col-span-3">Unidad</div>
+                <div className="col-span-1 text-center"> </div>
               </div>
-            ))}
+
+              {form.ingredients.map((ing, i) => (
+                <div
+                  key={i}
+                  className="grid grid-cols-12 gap-3 items-center px-2 py-2 rounded-lg border bg-white hover:bg-gray-50 transition"
+                >
+                  {/* Nombre */}
+                  <div className="col-span-5">
+                    <input
+                      value={ing.ingredientName}
+                      disabled
+                      className="w-full bg-gray-100 border rounded-md px-3 py-2 text-sm cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* Cantidad */}
+                  <div className="col-span-3">
+                    <input
+                      type="number"
+                      min="0"
+                      value={ing.quantity}
+                      onChange={(e) =>
+                        updateIngredient(i, "quantity", e.target.value)
+                      }
+                      className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#D4B5A5]"
+                    />
+                  </div>
+
+                  {/* Unidad */}
+                  <div className="col-span-3">
+                    <input
+                      value={formatUnit(ing.unit)}
+                      disabled
+                      className="w-full bg-gray-100 border rounded-md px-3 py-2 text-sm cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* Eliminar */}
+                  <div className="col-span-1 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => removeIngredient(i)}
+                      className="text-red-500 hover:text-red-700 font-bold text-lg transition"
+                      title="Eliminar ingrediente"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
 
             <button
               type="button"

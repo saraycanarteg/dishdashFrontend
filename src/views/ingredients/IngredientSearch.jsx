@@ -72,16 +72,23 @@ function IngredientSearch({ onSelect }) {
       )}
 
       {show && results.length > 0 && (
-        <div className="search-results">
+        <div className="mt-2 border rounded-lg shadow-sm bg-white overflow-hidden">
           {results.map((ing) => (
             <div
               key={ing._id || ing.productId}
               onClick={() => handleSelect(ing)}
-              className="search-result-item"
+              className="
+          cursor-pointer px-4 py-2
+          flex justify-between items-center
+          hover:bg-[#9FB9B3]/20
+          transition
+        "
             >
-              <div className="search-result-name">{ing.name}</div>
-              <div className="search-result-info">
-                Unit: {ing.sizeUnit} | ${ing.price}
+              <div>
+                <p className="font-medium text-gray-800">{ing.name}</p>
+                <p className="text-xs text-gray-500">
+                  {ing.sizeUnit} · ${ing.price}
+                </p>
               </div>
             </div>
           ))}
