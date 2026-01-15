@@ -1,11 +1,14 @@
-import React, { useMemo } from "react";
+import React from "react";
 
-const BACKEND_URL = import.meta.env.VITE_ASSETS_URL;
+const API_BASE =
+  import.meta.env.VITE_API_URL?.replace("/dishdash", "") ||
+  "https://recipemanagement-caj9.onrender.com";
+
+const getImageUrl = (path) => (path ? `${API_BASE}${path}` : "");
 
 const RecipeDetailModal = ({ recipe, onClose }) => {
   if (!recipe) return null;
 
- 
   const parsedInstructions = useMemo(() => {
     if (!recipe.instructions) return [];
 
@@ -25,12 +28,11 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
 
     return [];
   }, [recipe.instructions]);
-
+  
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="bg-white rounded-xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-        
-        {/* ---------------- Header ---------------- */}
+        {/* Header */}
         <div className="relative p-6 pb-4">
           <button
             onClick={onClose}
@@ -47,11 +49,9 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
                 {recipe.name}
               </h2>
 
-              {recipe.category && (
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-[#9FB9B3]/20 text-[#5a7f78]">
-                  {recipe.category}
-                </span>
-              )}
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-[#9FB9B3]/20 text-[#5a7f78]">
+                {recipe.category}
+              </span>
 
               <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-gray-600 mt-3">
                 <p>
@@ -70,13 +70,9 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
             {recipe.imageUrl ? (
               <div className="w-28 h-28 rounded-lg overflow-hidden border bg-gray-100 shrink-0">
                 <img
-                  src={`${BACKEND_URL}${recipe.imageUrl}`}
+                  src={getImageUrl(recipe.imageUrl)}
                   alt={recipe.name}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/placeholder.png";
-                  }}
                 />
               </div>
             ) : (
@@ -87,9 +83,8 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
           </div>
         </div>
 
-        {/* ---------------- Content ---------------- */}
+        {/* Content */}
         <div className="px-6 pb-6 space-y-5 text-sm">
-          
           {/* Description */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-1">Descripción</h4>
@@ -125,9 +120,10 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
           {/* Instructions */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-2">Instrucciones</h4>
-            {parsedInstructions.length > 0 ? (
+            {Array.isArray(recipe.instructions) &&
+            recipe.instructions.length > 0 ? (
               <ol className="space-y-2 list-decimal list-inside text-gray-700">
-                {parsedInstructions.map((step, i) => (
+                {recipe.instructions.map((step, i) => (
                   <li key={i}>{step}</li>
                 ))}
               </ol>
@@ -146,7 +142,6 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );
