@@ -18,8 +18,9 @@ function IngredientSearch({ onSelect }) {
     const timer = setTimeout(async () => {
       try {
         console.log("Searching for:", search);
+        console.log("Rendered results:", results);
         const res = await ingredientService.getByName(search);
-        console.log("Results:", res);
+        console.log("Raw response:", res.data);
 
         const data = Array.isArray(res.data)
           ? res.data
