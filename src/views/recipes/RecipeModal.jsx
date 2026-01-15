@@ -58,18 +58,6 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     }
   }, [initialData, isOpen]);
 
-  useEffect(() => {
-    if (isOpen) {
-      ingredientService
-        .getAll()
-        .then((data) => setAllIngredients(data))
-        .catch((err) => {
-          console.error("Error cargando ingredientes:", err);
-          setAllIngredients([]);
-        });
-    }
-  }, [isOpen]);
-
   const resetForm = () => {
     setForm({
       name: "",
