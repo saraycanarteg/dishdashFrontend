@@ -24,10 +24,10 @@ const recipeService = {
   getById: async (id) => {
     return await axiosInstance.get(`/recipes/${encodeURIComponent(id)}`);
   },
-
-  // Crear receta
   create: async (data) => {
-    return await axiosInstance.post("/recipe", data);
+    return await axiosInstance.post("/recipe", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
   },
 
   // Actualizar receta
@@ -44,6 +44,7 @@ const recipeService = {
       `/recipe/${encodeURIComponent(id)}`
     );
   },
+
 
   // Eliminar definitivo
   forceDelete: async (id) => {

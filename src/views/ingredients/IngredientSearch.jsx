@@ -73,7 +73,7 @@ function IngredientSearch({ onSelect }) {
         <div className="search-results">
           {results.map((ing) => (
             <div
-              key={ing.productId}
+              key={ing._id || ing.productId}
               onClick={() => handleSelect(ing)}
               className="search-result-item"
             >

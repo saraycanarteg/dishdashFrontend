@@ -26,6 +26,7 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     description: "",
     ingredients: [],
     instructions: [],
+    image: null,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,7 +127,6 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Validar ingredientes: no vacíos, con productId, nombre y cantidad numérica
     const validIngredients = form.ingredients
       .filter(
         (ing) =>
@@ -147,7 +147,6 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         unit,
       }));
 
-    // Validar instrucciones: que no estén vacías y sean strings
     const validInstructions = form.instructions
       .map((instr) => (typeof instr === "string" ? instr.trim() : ""))
       .filter((instr) => instr !== "");
@@ -164,19 +163,23 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       return;
     }
 
-    // Preparar objeto para enviar
-    const dataToSend = {
-      name: form.name,
-      category: form.category,
-      servings: form.servings,
-      description: form.description,
-      ingredients: validIngredients,
-      instructions: validInstructions,
-    };
+    const formData = new FormData();
+
+    formData.append("name", form.name);
+    formData.append("category", form.category);
+    formData.append("servings", form.servings);
+    formData.append("description", form.description);
+
+    formData.append("ingredients", JSON.stringify(validIngredients));
+    formData.append("instructions", JSON.stringify(validInstructions));
+
+    if (form.image) {
+      formData.append("image", form.image);
+    }
 
     try {
-      console.log("Datos a enviar:", JSON.stringify(dataToSend, null, 2));
-      await onSubmit(dataToSend);
+      console.log("Enviando receta con imagen...");
+      await onSubmit(formData);
       onClose();
     } catch (error) {
       console.error("Error al guardar receta:", error);
@@ -186,21 +189,25 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   };
 
   const handleIngredientSelect = (ingredient) => {
-    // Agregar ingrediente a la lista en form.ingredients
-    setForm((p) => ({
-      ...p,
-      ingredients: [
-        ...p.ingredients,
-        {
-          _id: ingredient._id || "",
-          productId: ingredient.productId || "",
-          ingredientName: ingredient.name,
-          quantity: 0,
-          unit: ingredient.sizeUnit || "",
-          price: ingredient.price || 0,
-        },
-      ],
-    }));
+    setForm((p) => {
+      if (p.ingredients.some((i) => i.productId === ingredient.productId)) {
+        return p; // ya existe
+      }
+
+      return {
+        ...p,
+        ingredients: [
+          ...p.ingredients,
+          {
+            _id: ingredient._id || "",
+            productId: ingredient.productId || "",
+            ingredientName: ingredient.name,
+            quantity: 1,
+            unit: ingredient.sizeUnit || "",
+          },
+        ],
+      };
+    });
   };
 
   const onNewIngredientCreated = (newIngredient) => {
@@ -212,7 +219,7 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           _id: newIngredient._id || "",
           productId: newIngredient.productId || "",
           ingredientName: newIngredient.name,
-          quantity: 0,
+          quantity: 1,
           unit: newIngredient.sizeUnit || "",
           price: newIngredient.price || 0,
         },
@@ -234,50 +241,58 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
             <CloseIcon />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <label htmlFor="name" className="block font-medium mb-1">
-            Nombre de la receta *
-          </label>
-          <input
-            id="name"
-            name="name"
-            placeholder="Nombre de la receta *"
-            value={form.name}
-            onChange={handleChange}
-            className="w-full border rounded-md px-3 py-2"
-            required
-          />
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Top section */}
+          <div className="grid grid-cols-3 gap-6">
+            {/* LEFT */}
+            <div className="col-span-2 space-y-4">
+              <div>
+                <label htmlFor="name" className="block font-medium mb-1">
+                  Nombre de la receta *
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  className="w-full border rounded-md px-3 py-2"
+                  required
+                />
+              </div>
 
-          <div className="flex flex-col gap-4">
-            <label htmlFor="category" className="block font-medium">
-              Categoría
-            </label>
-            <select
-              id="category"
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              className="border rounded-md px-3 py-2"
-            >
-              <option value="cocktail">Cocktail</option>
-              <option value="appetizer">Aperitivo</option>
-              <option value="main_course">Plato principal</option>
-              <option value="dessert">Postre</option>
-              <option value="beverage">Bebida</option>
-            </select>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block font-medium">Categoría</label>
+                  <select
+                    name="category"
+                    value={form.category}
+                    onChange={handleChange}
+                    className="border rounded-md px-3 py-2 w-full"
+                  >
+                    <option value="cocktail">Cocktail</option>
+                    <option value="appetizer">Aperitivo</option>
+                    <option value="main_course">Plato principal</option>
+                    <option value="dessert">Postre</option>
+                    <option value="beverage">Bebida</option>
+                  </select>
+                </div>
 
-            <label htmlFor="servings" className="block font-medium ">
-              Porciones
-            </label>
-            <input
-              id="servings"
-              type="number"
-              name="servings"
-              min="1"
-              value={form.servings}
-              onChange={handleChange}
-              className="border rounded-md px-3 py-2"
-            />
+                <div className="w-32">
+                  <label className="block font-medium">Porciones</label>
+                  <input
+                    type="number"
+                    name="servings"
+                    min="1"
+                    value={form.servings}
+                    onChange={handleChange}
+                    className="border rounded-md px-3 py-2 w-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT → IMAGE */}
+            <ImageUpload form={form} setForm={setForm} />
           </div>
 
           <label htmlFor="description" className="block font-medium mb-1">
@@ -418,6 +433,58 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           onClose={() => setShowIngredientModal(false)}
           onSubmit={onNewIngredientCreated}
         />
+      )}
+    </div>
+  );
+};
+
+const ImageUpload = ({ form, setForm }) => {
+  const handleFile = (file) => {
+    if (!file) return;
+    setForm((p) => ({ ...p, image: file }));
+  };
+
+  return (
+    <div
+      className="border-2 border-dashed rounded-lg h-48 flex items-center justify-center text-center cursor-pointer hover:border-[#D4B5A5] transition relative"
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        handleFile(e.dataTransfer.files[0]);
+      }}
+      onClick={() => document.getElementById("imageInput").click()}
+    >
+      <input
+        id="imageInput"
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => handleFile(e.target.files[0])}
+      />
+
+      {!form.image ? (
+        <div className="text-gray-400 text-sm px-4">
+          <p className="font-medium">Arrastra una imagen</p>
+          <p>o haz click para subir</p>
+        </div>
+      ) : (
+        <div className="relative w-full h-full">
+          <img
+            src={URL.createObjectURL(form.image)}
+            alt="Preview"
+            className="w-full h-full object-cover rounded-lg"
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setForm((p) => ({ ...p, image: null }));
+            }}
+            className="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full px-2"
+          >
+            ✕
+          </button>
+        </div>
       )}
     </div>
   );
