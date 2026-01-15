@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import  ingredientService  from '../../services/ingredient';
+import React, { useState, useEffect } from "react";
+import ingredientService from "../../services/ingredient";
 
 function IngredientSearch({ onSelect }) {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -17,13 +17,20 @@ function IngredientSearch({ onSelect }) {
     setLoading(true);
     const timer = setTimeout(async () => {
       try {
-        console.log('Searching for:', search);
+        console.log("Searching for:", search);
         const res = await ingredientService.getByName(search);
-        console.log('Results:', res);
-        setResults(res.data || []);
+        console.log("Results:", res);
+
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data
+          ? [res.data]
+          : [];
+
+        setResults(data);
         setShow(true);
       } catch (err) {
-        console.error('Search error:', err);
+        console.error("Search error:", err);
         setResults([]);
       } finally {
         setLoading(false);
@@ -35,7 +42,7 @@ function IngredientSearch({ onSelect }) {
 
   const handleSelect = (ing) => {
     onSelect(ing);
-    setSearch('');
+    setSearch("");
     setResults([]);
     setShow(false);
   };
@@ -51,7 +58,9 @@ function IngredientSearch({ onSelect }) {
       />
 
       {loading && (
-        <div style={{padding: '0.5rem', textAlign: 'center', color: '#6b7280'}}>
+        <div
+          style={{ padding: "0.5rem", textAlign: "center", color: "#6b7280" }}
+        >
           Searching...
         </div>
       )}
@@ -75,7 +84,7 @@ function IngredientSearch({ onSelect }) {
 
       {show && results.length === 0 && !loading && search.length >= 2 && (
         <div className="search-results">
-          <div style={{padding: '0.75rem', color: '#6b7280'}}>
+          <div style={{ padding: "0.75rem", color: "#6b7280" }}>
             No ingredients found
           </div>
         </div>
