@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ingredientService from "../../services/ingredient";
 import IngredientModal from "../ingredients/IngredientsModal";
+import IngredientSearch from "./IngredientSearch";
 
 const CloseIcon = ({ className = "w-5 h-5" }) => (
   <svg
@@ -220,6 +221,24 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     }
   };
 
+  const handleIngredientSelect = (ingredient) => {
+    // Agregar ingrediente a la lista en form.ingredients
+    setForm((p) => ({
+      ...p,
+      ingredients: [
+        ...p.ingredients,
+        {
+          _id: ingredient._id || "",
+          productId: ingredient.productId || "",
+          ingredientName: ingredient.name,
+          quantity: 0,
+          unit: ingredient.sizeUnit || "",
+          price: ingredient.price || 0,
+        },
+      ],
+    }));
+  };
+
   const onNewIngredientCreated = (newIngredient) => {
     setForm((p) => ({
       ...p,
@@ -313,34 +332,10 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           <div>
             <h4 className="font-medium mb-2">Ingredientes</h4>
 
-            <label
-              htmlFor="select-ingredient"
-              className="block font-medium mb-1"
-            >
-              Seleccionar ingrediente
+            <label className="block font-medium mb-1">
+              Buscar y agregar ingrediente
             </label>
-            <div className="flex gap-2 mb-3">
-              <select
-                id="select-ingredient"
-                value={selectedIngredientId}
-                onChange={(e) => setSelectedIngredientId(e.target.value)}
-                className="border rounded-md px-3 py-2 flex-grow"
-              >
-                <option value="">Selecciona un ingrediente</option>
-                {allIngredients.map((ing) => (
-                  <option key={ing._id} value={ing._id}>
-                    {ing.name} {ing.brand ? `- ${ing.brand}` : ""}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={addSelectedIngredient}
-                className="px-4 py-2 bg-[#9FB9B3] text-white rounded"
-              >
-                + Agregar
-              </button>
-            </div>
+            <IngredientSearch onSelect={handleIngredientSelect} />
 
             {form.ingredients.map((ing, i) => (
               <div key={i} className="grid grid-cols-4 gap-2 mb-2">
