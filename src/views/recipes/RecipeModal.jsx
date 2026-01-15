@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import ingredient from "../services/ingredient";
+import ingredient from "../../services/ingredient";
 import IngredientModal from "../ingredients/IngredientsModal";
 import IngredientSearch from "../ingredients/IngredientSearch";
 
