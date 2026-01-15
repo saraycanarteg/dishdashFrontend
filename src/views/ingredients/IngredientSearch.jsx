@@ -30,8 +30,12 @@ function IngredientSearch({ onSelect }) {
         setResults(data);
         setShow(true);
       } catch (err) {
-        console.error("Search error:", err);
-        setResults([]);
+        if (err.response?.status === 404) {
+          setResults([]);
+          setShow(true);
+        } else {
+          console.error("Search error:", err);
+        }
       } finally {
         setLoading(false);
       }
