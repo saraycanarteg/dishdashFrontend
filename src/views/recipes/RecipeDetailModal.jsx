@@ -1,5 +1,5 @@
 import React from "react";
-const BACKEND_URL = import.meta.env.VITE_API_URL;
+const BACKEND_URL = import.meta.env.VITE_ASSETS_URL;
 
 const RecipeDetailModal = ({ recipe, onClose }) => {
   if (!recipe) return null;
