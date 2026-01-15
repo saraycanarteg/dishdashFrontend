@@ -30,7 +30,7 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [allIngredients, setAllIngredients] = useState([]);
-  const [selectedIngredientId, setSelectedIngredientId] = useState("");
+  //const [selectedIngredientId, setSelectedIngredientId] = useState("");
   const [showIngredientModal, setShowIngredientModal] = useState(false);
 
   useEffect(() => {
@@ -69,30 +69,6 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         });
     }
   }, [isOpen]);
-
-  const addSelectedIngredient = () => {
-    if (!selectedIngredientId) return;
-    const ingredient = allIngredients.find(
-      (i) => i._id === selectedIngredientId
-    );
-    if (!ingredient) return;
-
-    setForm((p) => ({
-      ...p,
-      ingredients: [
-        ...p.ingredients,
-        {
-          _id: ingredient._id || "",
-          productId: ingredient.productId || "",
-          ingredientName: ingredient.name,
-          quantity: 0,
-          unit: ingredient.sizeUnit || "",
-          price: ingredient.price || 0,
-        },
-      ],
-    }));
-    setSelectedIngredientId("");
-  };
 
   const resetForm = () => {
     setForm({
