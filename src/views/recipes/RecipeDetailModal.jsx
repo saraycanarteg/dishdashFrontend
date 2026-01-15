@@ -1,4 +1,5 @@
 import React from "react";
+
 const BACKEND_URL = import.meta.env.VITE_ASSETS_URL;
 
 const RecipeDetailModal = ({ recipe, onClose }) => {
@@ -7,50 +8,61 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="bg-white rounded-xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-        {/* Image */}
-        {recipe.imageUrl && (
-          <div className="relative h-56 w-full">
-            <img
-              src={`${BACKEND_URL}${recipe.imageUrl}`}
-              alt={recipe.name}
-              className="w-full h-48 object-cover rounded-md"
-            />
-
-            <button
-              onClick={onClose}
-              className="absolute top-3 right-3 bg-black/50 text-white rounded-full px-3 py-1 text-lg hover:bg-black/70"
-              aria-label="Cerrar"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-
+        
         {/* Header */}
-        <div className="p-6 space-y-4">
-          <div className="flex justify-between items-start">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              {recipe.name}
-            </h2>
+        <div className="relative p-6 pb-4">
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
 
-            <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#9FB9B3]/20 text-[#5a7f78]">
-              {recipe.category}
-            </span>
+          <div className="flex gap-5 items-start">
+            {/* Info */}
+            <div className="flex-1 space-y-2">
+              <h2 className="text-2xl font-semibold text-gray-800">
+                {recipe.name}
+              </h2>
+
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-[#9FB9B3]/20 text-[#5a7f78]">
+                {recipe.category}
+              </span>
+
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-gray-600 mt-3">
+                <p>
+                  <strong>Porciones:</strong> {recipe.servings}
+                </p>
+                <p>
+                  <strong>Precio:</strong> ${recipe.pricePerServing}
+                </p>
+                <p>
+                  <strong>Costo:</strong> ${recipe.costPerServing}
+                </p>
+              </div>
+            </div>
+
+            {/* Image */}
+            {recipe.imageUrl ? (
+              <div className="w-28 h-28 rounded-lg overflow-hidden border bg-gray-100 shrink-0">
+                <img
+                  src={`${BACKEND_URL}${recipe.imageUrl}`}
+                  alt={recipe.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-28 h-28 flex items-center justify-center text-xs text-gray-400 border rounded-lg bg-gray-50 shrink-0">
+                Sin imagen
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Meta */}
-          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-            <p>
-              <strong>Porciones:</strong> {recipe.servings}
-            </p>
-            <p>
-              <strong>Precio:</strong> ${recipe.pricePerServing}
-            </p>
-            <p>
-              <strong>Costo:</strong> ${recipe.costPerServing}
-            </p>
-          </div>
-
+        {/* Content */}
+        <div className="px-6 pb-6 space-y-5 text-sm">
+          
           {/* Description */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-1">Descripción</h4>
@@ -62,37 +74,41 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
           {/* Ingredients */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-2">Ingredientes</h4>
-            <ul className="space-y-1">
-              {recipe.ingredients?.length > 0 ? (
-                recipe.ingredients.map((ing, i) => (
+            {recipe.ingredients?.length > 0 ? (
+              <ul className="space-y-2">
+                {recipe.ingredients.map((ing, i) => (
                   <li
                     key={ing._id || ing.productId || i}
-                    className="flex justify-between bg-gray-50 px-3 py-2 rounded-md text-sm"
+                    className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-md"
                   >
-                    <span>{ing.ingredientName || ing.name}</span>
+                    <span className="text-gray-800">
+                      {ing.ingredientName || ing.name}
+                    </span>
                     <span className="text-gray-600">
                       {ing.quantity} {ing.unit}
                     </span>
                   </li>
-                ))
-              ) : (
-                <p className="text-gray-500">Sin ingredientes</p>
-              )}
-            </ul>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">Sin ingredientes</p>
+            )}
           </div>
 
           {/* Instructions */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-2">Instrucciones</h4>
-            <ol className="space-y-2 list-decimal list-inside text-gray-700">
-              {recipe.instructions?.length > 0 ? (
-                recipe.instructions.map((step, i) => (
-                  <li key={i}>{typeof step === "string" ? step : step.step}</li>
-                ))
-              ) : (
-                <p className="text-gray-500">Sin instrucciones</p>
-              )}
-            </ol>
+            {recipe.instructions?.length > 0 ? (
+              <ol className="space-y-2 list-decimal list-inside text-gray-700">
+                {recipe.instructions.map((step, i) => (
+                  <li key={i}>
+                    {typeof step === "string" ? step : step.step}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-gray-500">Sin instrucciones</p>
+            )}
           </div>
 
           {/* Footer */}
@@ -105,6 +121,7 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );
