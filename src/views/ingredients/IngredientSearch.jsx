@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ingredientService } from '../../services/ingredient';
+import  ingredientService  from '../../services/ingredient';
 
 function IngredientSearch({ onSelect }) {
   const [search, setSearch] = useState('');
