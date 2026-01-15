@@ -3,7 +3,6 @@ import ingredient from "../../services/ingredient";
 import IngredientModal from "../ingredients/IngredientsModal";
 import IngredientSearch from "../ingredients/IngredientSearch";
 
-
 const CloseIcon = ({ className = "w-5 h-5" }) => (
   <svg
     className={className}
@@ -295,12 +294,19 @@ const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           />
 
           <div>
-            <h4 className="font-medium mb-2">Ingredientes</h4>
+            <div className="space-y-3">
+              <h4 className="text-lg font-semibold text-gray-800">
+                Ingredientes
+              </h4>
 
-            <label className="block font-medium mb-1">
-              Buscar y agregar ingrediente
-            </label>
-            <IngredientSearch onSelect={handleIngredientSelect} />
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Buscar y agregar ingrediente
+                </label>
+
+                <IngredientSearch onSelect={handleIngredientSelect} />
+              </div>
+            </div>
 
             {form.ingredients.map((ing, i) => (
               <div key={i} className="grid grid-cols-4 gap-2 mb-2">

@@ -18,7 +18,7 @@ function IngredientSearch({ onSelect }) {
     const timer = setTimeout(async () => {
       try {
         console.log('Searching for:', search);
-        const res = await ingredientService.searchByName(search);
+        const res = await ingredientService.getByName(search);
         console.log('Results:', res);
         setResults(res.data || []);
         setShow(true);
