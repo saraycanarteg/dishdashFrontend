@@ -9,29 +9,10 @@ const getImageUrl = (path) => (path ? `${API_BASE}${path}` : "");
 const RecipeDetailModal = ({ recipe, onClose }) => {
   if (!recipe) return null;
 
-  const parsedInstructions = useMemo(() => {
-    if (!recipe.instructions) return [];
-
-    if (Array.isArray(recipe.instructions)) {
-      return recipe.instructions;
-    }
-
-    if (typeof recipe.instructions === "string") {
-      try {
-        const parsed = JSON.parse(recipe.instructions);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch (err) {
-        console.error("Error parsing instructions:", err);
-        return [];
-      }
-    }
-
-    return [];
-  }, [recipe.instructions]);
-  
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="bg-white rounded-xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+
         {/* Header */}
         <div className="relative p-6 pb-4">
           <button
@@ -85,6 +66,7 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
 
         {/* Content */}
         <div className="px-6 pb-6 space-y-5 text-sm">
+
           {/* Description */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-1">Descripción</h4>
@@ -142,6 +124,7 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );
