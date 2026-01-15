@@ -1,6 +1,10 @@
 import React from "react";
 
-const BACKEND_URL = import.meta.env.VITE_ASSETS_URL;
+const API_BASE =
+  import.meta.env.VITE_API_URL?.replace("/dishdash", "") ||
+  "https://recipemanagement-caj9.onrender.com";
+
+const getImageUrl = (path) => (path ? `${API_BASE}${path}` : "");
 
 const RecipeDetailModal = ({ recipe, onClose }) => {
   if (!recipe) return null;
@@ -8,7 +12,7 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="bg-white rounded-xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-        
+
         {/* Header */}
         <div className="relative p-6 pb-4">
           <button
@@ -47,7 +51,7 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
             {recipe.imageUrl ? (
               <div className="w-28 h-28 rounded-lg overflow-hidden border bg-gray-100 shrink-0">
                 <img
-                  src={`${BACKEND_URL}${recipe.imageUrl}`}
+                  src={getImageUrl(recipe.imageUrl)}
                   alt={recipe.name}
                   className="w-full h-full object-cover"
                 />
@@ -62,7 +66,7 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
 
         {/* Content */}
         <div className="px-6 pb-6 space-y-5 text-sm">
-          
+
           {/* Description */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-1">Descripción</h4>
@@ -98,12 +102,11 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
           {/* Instructions */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-2">Instrucciones</h4>
-            {recipe.instructions?.length > 0 ? (
+            {Array.isArray(recipe.instructions) &&
+            recipe.instructions.length > 0 ? (
               <ol className="space-y-2 list-decimal list-inside text-gray-700">
                 {recipe.instructions.map((step, i) => (
-                  <li key={i}>
-                    {typeof step === "string" ? step : step.step}
-                  </li>
+                  <li key={i}>{step}</li>
                 ))}
               </ol>
             ) : (
