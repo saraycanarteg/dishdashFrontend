@@ -137,7 +137,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         ingredients,
         ingredientsCost: ingredientsCostResult,
         productCost: productCostResult,
-        taxes: taxesResult,
+        taxes: taxesResult.taxes,
       });
       showToast("Análisis creado correctamente", "success");
       onSuccess();
@@ -255,9 +255,18 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 </>
               )}
 
-              {step === 4 && (
+              {step === 4 && taxesResult?.taxes && (
                 <>
-                  <p>Impuestos: ${taxesResult.totalTaxes}</p>
+                  <p>
+                    Impuestos: $
+                    {(Number(taxesResult.taxes.totalTaxes) || 0).toFixed(2)}
+                  </p>
+
+                  <p>
+                    Precio final: $
+                    {(Number(taxesResult.finalPrice) || 0).toFixed(2)}
+                  </p>
+
                   <button
                     onClick={() => setConfirm({ open: true, loading: false })}
                     className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md"
