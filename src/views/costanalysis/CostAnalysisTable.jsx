@@ -1,15 +1,18 @@
-import React from 'react';
-import { Eye, Trash2 } from 'lucide-react';
+import { useState } from "react";
+import { Eye, Trash2 } from "lucide-react";
+import CostAnalysisDetails from "./CostAnalysisDetails"; // el componente de detalles
+import { Modal } from "../../components/ui/Modal"; // asumimos que tienes un modal reutilizable
 
 const CostAnalysisTable = ({
   analyses,
-  onView,
   onDelete,
   currentPage = 1,
   totalItems = 0,
   itemsPerPage = 10,
   onPageChange,
 }) => {
+  const [selectedAnalysis, setSelectedAnalysis] = useState(null);
+
   if (!analyses.length) {
     return (
       <div className="text-center text-gray-500 py-8">
@@ -52,17 +55,10 @@ const CostAnalysisTable = ({
                 key={analysis._id}
                 className="border-b border-[#e7c78a] hover:bg-[#f5f2eb] transition-colors"
               >
-                <td className="py-4 px-6">
-                  <div className="font-medium text-gray-800">
-                    {analysis.recipeName}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {new Date(analysis.createdAt).toLocaleDateString("es-ES")}
-                  </div>
+                <td className="py-4 px-6 font-medium text-gray-800">
+                  {analysis.recipeName}
                 </td>
-                <td className="py-4 px-6 text-gray-700">
-                  {analysis.servings}
-                </td>
+                <td className="py-4 px-6">{analysis.servings}</td>
                 <td className="py-4 px-6 font-semibold text-gray-800">
                   ${analysis.costPerServing?.toFixed(2) || "0.00"}
                 </td>
@@ -74,8 +70,9 @@ const CostAnalysisTable = ({
                 </td>
                 <td className="py-4 px-6">
                   <div className="flex items-center justify-center gap-2">
+                    {/* Abrir modal */}
                     <button
-                      onClick={() => onView(analysis)}
+                      onClick={() => setSelectedAnalysis(analysis)}
                       className="p-2 text-[#adc4bc] hover:bg-[#f5f2eb] rounded-lg transition-colors"
                       title="Ver detalles"
                     >
@@ -119,6 +116,13 @@ const CostAnalysisTable = ({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Modal para detalles */}
+      {selectedAnalysis && (
+        <Modal isOpen={!!selectedAnalysis} onClose={() => setSelectedAnalysis(null)}>
+          <CostAnalysisDetails analysis={selectedAnalysis} />
+        </Modal>
       )}
     </div>
   );
