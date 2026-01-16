@@ -84,14 +84,17 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   /* ================= STEP 2 ================= */
   const handleCalculateProduct = async () => {
     try {
+      if (!ingredientsCostResult) {
+        showToast("Primero calcula los ingredientes", "error");
+        return;
+      }
+
       const response = await costAnalysisService.calculateProductCost({
-        ingredientsCost: Number(ingredientsCostResult?.ingredientsCost) || 0,
-        indirectCost: Number(ingredientsCostResult?.indirectCost) || 0,
+        ingredientsCost: Number(ingredientsCostResult.ingredientsCost) || 0,
+        indirectCost: Number(ingredientsCostResult.indirectCost) || 0,
         servings: Number(selectedRecipe?.servings) || 1,
         margin: 30,
       });
-
-      console.log("BACKEND productCostResult 👉", response.data);
 
       setProductCostResult(response.data);
       setStep(3);
@@ -229,8 +232,12 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
               {step === 2 && (
                 <>
                   <p>
-                    Costo ingredientes: ${ingredientsCostResult.ingredientsCost}
+                    Costo ingredientes: $
+                    {(
+                      Number(ingredientsCostResult?.ingredientsCost) || 0
+                    ).toFixed(2)}
                   </p>
+
                   <button
                     onClick={handleCalculateProduct}
                     className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
