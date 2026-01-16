@@ -31,7 +31,7 @@ const formatUnit = (unit) => {
   return UNIT_LABELS[unit] ? `${unit} (${UNIT_LABELS[unit]})` : unit;
 };
 
-const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
+const RecipeModal = ({ isOpen, onClose, onSubmit, initialData = null, onShowToast = null }) => {
   const [form, setForm] = useState({
     name: "",
     category: "cocktail",

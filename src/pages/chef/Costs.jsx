@@ -1,17 +1,46 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Eye, RefreshCw } from "lucide-react";
-import CreateAnalysisModal from "../../views/costanalysis/CreateAnalysisModal";
+import CostAnalysisStats from "../../views/costanalysis/CostAnalysisStats";
+import CostAnalysisFilters from "../../views/costanalysis/CostAnalysisFilters";
+import CostAnalysisTable from "../../views/costanalysis/CostAnalysisTable";
+import CreateAnalysisPage from "../../views/costanalysis/CreateAnalysisPage";
+import ConfirmationModal from "../../components/ui/ConfirmationModal";
+import Toast from "../../components/ui/Toast";
 import costAnalysisService from "../../services/costAnalysis";
 
 const Costs = () => {
   const [analyses, setAnalyses] = useState([]);
+  const [filteredAnalyses, setFilteredAnalyses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showCreatePage, setShowCreatePage] = useState(false);
   const [selectedAnalysis, setSelectedAnalysis] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [confirm, setConfirm] = useState({ open: false, id: null, loading: false });
+
+  const itemsPerPage = 10;
 
   useEffect(() => {
     loadAnalyses();
   }, []);
+
+  useEffect(() => {
+    filterAnalyses();
+  }, [analyses, searchTerm]);
+
+  const filterAnalyses = () => {
+    let filtered = analyses;
+
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter((analysis) =>
+        analysis.recipeName?.toLowerCase().includes(search)
+      );
+    }
+
+    setFilteredAnalyses(filtered);
+    setCurrentPage(1);
+  };
 
   const loadAnalyses = async () => {
     setIsLoading(true);
@@ -20,100 +49,88 @@ const Costs = () => {
       setAnalyses(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error("Error loading analyses:", error);
+      showToast("Error al cargar análisis", "error");
       setAnalyses([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar este análisis?")) return;
+  const handleDeleteClick = (id) => {
+    setConfirm({ open: true, id, loading: false });
+  };
 
+  const handleConfirmDelete = async () => {
+    setConfirm((prev) => ({ ...prev, loading: true }));
     try {
-      await costAnalysisService.remove(id);
-      setAnalyses(analyses.filter((a) => a._id !== id));
+      await costAnalysisService.remove(confirm.id);
+      setAnalyses(analyses.filter((a) => a._id !== confirm.id));
+      showToast("Análisis eliminado correctamente", "success");
+      setConfirm({ open: false, id: null, loading: false });
     } catch (error) {
       console.error("Error deleting analysis:", error);
-      alert("Error al eliminar el análisis");
+      showToast("Error al eliminar el análisis", "error");
+      setConfirm((prev) => ({ ...prev, loading: false }));
     }
   };
 
   const handleCreateSuccess = () => {
-    setShowCreateModal(false);
+    setShowCreatePage(false);
     loadAnalyses();
   };
 
+  const showToast = (message, type = "success") => {
+    setToast({ id: Date.now(), message, type });
+  };
+
+  // Calculate statistics
+  const totalCost = analyses.reduce((sum, a) => sum + (a.totalCost || 0), 0);
+  const averageCost =
+    analyses.length > 0 ? totalCost / analyses.length : 0;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredAnalyses.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Show create page instead of modal
+  if (showCreatePage) {
+    return (
+      <CreateAnalysisPage
+        onBack={() => setShowCreatePage(false)}
+        onSuccess={handleCreateSuccess}
+      />
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: "#9FB9B3" }}></div>
+          <p className="text-gray-600">Cargando análisis...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5f2eb] to-white p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-800 mb-2">
-                Análisis de Costos
-              </h1>
-              <p className="text-gray-600">
-                Gestiona y analiza los costos de tus recetas
-              </p>
-            </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-[#adc4bc] text-white rounded-xl hover:bg-[#9ab3ab] transition-all shadow-lg hover:shadow-xl font-medium"
-            >
-              <Plus size={20} />
-              Nuevo Análisis
-            </button>
-          </div>
-        </div>
+    <>
+      <div className="h-full">
+        <CostAnalysisStats
+          totalAnalyses={analyses.length}
+          totalProductCost={totalCost}
+          averageCost={averageCost}
+        />
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-2xl p-6 border-2 border-[#e7c78a] shadow-sm">
-            <div className="text-sm text-gray-600 mb-1">Total de Análisis</div>
-            <div className="text-3xl font-bold text-gray-800">
-              {analyses.length}
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 border-2 border-[#edcab4] shadow-sm">
-            <div className="text-sm text-gray-600 mb-1">Costo Promedio</div>
-            <div className="text-3xl font-bold text-gray-800">
-              $
-              {analyses.length > 0
-                ? (
-                    analyses.reduce((sum, a) => sum + (a.costPerServing || 0), 0) /
-                    analyses.length
-                  ).toFixed(2)
-                : "0.00"}
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 border-2 border-[#adc4bc] shadow-sm">
-            <div className="text-sm text-gray-600 mb-1">Precio Sugerido Promedio</div>
-            <div className="text-3xl font-bold text-gray-800">
-              $
-              {analyses.length > 0
-                ? (
-                    analyses.reduce(
-                      (sum, a) => sum + (a.suggestedPricePerServing || 0),
-                      0
-                    ) / analyses.length
-                  ).toFixed(2)
-                : "0.00"}
-            </div>
-          </div>
-        </div>
+        <CostAnalysisFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onOpenCreate={() => setShowCreatePage(true)}
+          analyses={analyses}
+        />
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-20">
-            <RefreshCw className="animate-spin text-[#adc4bc]" size={40} />
-            <span className="ml-3 text-gray-600">Cargando análisis...</span>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && analyses.length === 0 && (
-          <div className="bg-white rounded-2xl border-2 border-[#c8d0d2] p-12 text-center">
+        {filteredAnalyses.length === 0 ? (
+          <div className="bg-white rounded-lg border p-12 text-center">
             <div className="text-gray-400 mb-4">
               <svg
                 className="mx-auto h-24 w-24"
@@ -136,102 +153,41 @@ const Costs = () => {
               Comienza creando tu primer análisis de costos
             </p>
             <button
-              onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#adc4bc] text-white rounded-xl hover:bg-[#9ab3ab] transition-all font-medium"
+              onClick={() => setShowCreatePage(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#adc4bc] text-white rounded-md hover:opacity-90 transition-all font-medium"
             >
-              <Plus size={20} />
-              Crear Primer Análisis
+              + Crear Primer Análisis
             </button>
           </div>
-        )}
-
-        {/* Analyses List */}
-        {!isLoading && analyses.length > 0 && (
-          <div className="bg-white rounded-2xl border-2 border-[#c8d0d2] shadow-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[#f5f2eb] border-b-2 border-[#e7c78a]">
-                  <tr>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">
-                      Receta
-                    </th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">
-                      Porciones
-                    </th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">
-                      Costo/Porción
-                    </th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">
-                      Precio Sugerido
-                    </th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">
-                      Total
-                    </th>
-                    <th className="text-center py-4 px-6 text-sm font-semibold text-gray-700">
-                      Acciones
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {analyses.map((analysis) => (
-                    <tr
-                      key={analysis._id}
-                      className="border-b border-[#e7c78a] hover:bg-[#f5f2eb] transition-colors"
-                    >
-                      <td className="py-4 px-6">
-                        <div className="font-medium text-gray-800">
-                          {analysis.recipeName}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {new Date(analysis.createdAt).toLocaleDateString("es-ES")}
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-gray-700">
-                        {analysis.servings}
-                      </td>
-                      <td className="py-4 px-6 font-semibold text-gray-800">
-                        ${analysis.costPerServing?.toFixed(2) || "0.00"}
-                      </td>
-                      <td className="py-4 px-6 font-semibold text-[#adc4bc]">
-                        ${analysis.suggestedPricePerServing?.toFixed(2) || "0.00"}
-                      </td>
-                      <td className="py-4 px-6 font-semibold text-gray-800">
-                        ${analysis.totalCost?.toFixed(2) || "0.00"}
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => setSelectedAnalysis(analysis)}
-                            className="p-2 text-[#adc4bc] hover:bg-[#f5f2eb] rounded-lg transition-colors"
-                            title="Ver detalles"
-                          >
-                            <Eye size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(analysis._id)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Eliminar"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        ) : (
+          <CostAnalysisTable
+            analyses={currentItems}
+            onView={setSelectedAnalysis}
+            onDelete={handleDeleteClick}
+            currentPage={currentPage}
+            totalItems={filteredAnalyses.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         )}
       </div>
 
-      {/* Create Analysis Modal */}
-      <CreateAnalysisModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSuccess={handleCreateSuccess}
+      <ConfirmationModal
+        isOpen={confirm.open}
+        title="Eliminar Análisis"
+        message="¿Confirma que desea eliminar este análisis de costos?"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirm({ open: false, id: null, loading: false })}
+        loading={confirm.loading}
       />
-    </div>
+
+      <Toast
+        toast={toast}
+        onClose={() => setToast(null)}
+      />
+    </>
   );
 };
 
