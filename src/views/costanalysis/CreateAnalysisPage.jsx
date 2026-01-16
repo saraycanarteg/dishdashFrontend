@@ -123,18 +123,28 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   /* ================= SAVE ================= */
   const confirmCreate = async () => {
     setConfirm({ open: true, loading: true });
+
     try {
-      await costAnalysisService.create({
+      const payload = {
         recipeId: selectedRecipe._id,
-        recipeName: selectedRecipe.name,
-        ingredients,
-        ingredientsCost: ingredientsCostResult,
-        productCost: productCostResult,
-        taxes: taxesResult?.taxes,
-      });
+        selectedIngredients: ingredients.map((i) => ({
+          ingredientName: i.ingredientName,
+          productId: i.productId,
+          quantity: i.selectedQuantity,
+          unit: i.selectedUnit,
+        })),
+        ivaPercent: 15, 
+        servicePercent: 10, 
+      };
+
+      console.log("PAYLOAD PARA CREAR ANALISIS:", payload); 
+
+      await costAnalysisService.create(payload);
+
       showToast("Análisis creado correctamente", "success");
       onSuccess();
-    } catch {
+    } catch (error) {
+      console.error("Error al guardar análisis:", error);
       showToast("Error al guardar análisis", "error");
       setConfirm({ open: false, loading: false });
     }
@@ -160,7 +170,8 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
             Crear Análisis de Costos
           </h1>
           <p className="text-gray-600 mb-8">
-            Selecciona una receta y verifica los ingredientes para crear un análisis
+            Selecciona una receta y verifica los ingredientes para crear un
+            análisis
           </p>
 
           {!selectedRecipe ? (
@@ -184,7 +195,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
             </>
           ) : (
             <>
-              <h2 className="text-xl font-semibold mt-4">{selectedRecipe.name}</h2>
+              <h2 className="text-xl font-semibold mt-4">
+                {selectedRecipe.name}
+              </h2>
 
               {/* STEP 1 */}
               {step === 1 && (
@@ -216,7 +229,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
               {/* STEP 2 */}
               {step === 2 && (
                 <>
-                  <p>Costo ingredientes: ${ingredientsCostResult.ingredientsCost}</p>
+                  <p>
+                    Costo ingredientes: ${ingredientsCostResult.ingredientsCost}
+                  </p>
                   <button
                     onClick={handleCalculateProduct}
                     className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
@@ -231,7 +246,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 <>
                   <p>
                     Precio por porción: $
-                    {(Number(productCostResult?.suggestedPricePerServing) || 0).toFixed(2)}
+                    {(
+                      Number(productCostResult?.suggestedPricePerServing) || 0
+                    ).toFixed(2)}
                   </p>
                   <button
                     onClick={handleCalculateTaxes}
@@ -245,7 +262,10 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
               {/* STEP 4: solo IVA */}
               {step === 4 && taxesResult?.taxes && (
                 <>
-                  <p>IVA: ${(Number(taxesResult.taxes.ivaAmount) || 0).toFixed(2)}</p>
+                  <p>
+                    IVA: $
+                    {(Number(taxesResult.taxes.ivaAmount) || 0).toFixed(2)}
+                  </p>
                   <button
                     onClick={() => setStep(5)}
                     className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
@@ -258,8 +278,14 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
               {/* STEP 5: total impuestos + precio final */}
               {step === 5 && taxesResult && (
                 <>
-                  <p>Total impuestos: ${(Number(taxesResult.taxes.totalTaxes) || 0).toFixed(2)}</p>
-                  <p>Precio final: ${(Number(taxesResult.finalPrice) || 0).toFixed(2)}</p>
+                  <p>
+                    Total impuestos: $
+                    {(Number(taxesResult.taxes.totalTaxes) || 0).toFixed(2)}
+                  </p>
+                  <p>
+                    Precio final: $
+                    {(Number(taxesResult.finalPrice) || 0).toFixed(2)}
+                  </p>
                   <button
                     onClick={() => setConfirm({ open: true, loading: false })}
                     className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md"
