@@ -16,19 +16,14 @@ const costAnalysisService = {
   },
 
   calculateTaxes: async (data) => {
-    const payload = {
-      ivaPercent: Number(data.ivaPercent),
-      servicePercent: Number(data.servicePercent),
-      pricePerServing: Number(data.suggestedPricePerServing), 
-    };
-
-    console.log("SERVICE TAXES PAYLOAD", payload);
+    console.log("SERVICE TAXES PAYLOAD", data);
 
     return await axiosInstance.post(
       "/costanalysis/calculate/taxes",
-      payload
+      data
     );
   },
+
 
 
 
