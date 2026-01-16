@@ -18,6 +18,10 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   const [toast, setToast] = useState(null);
   const [confirm, setConfirm] = useState({ open: false, loading: false });
 
+  // Porcentajes de impuestos
+  const [ivaPercent, setIvaPercent] = useState(15);
+  const [servicePercent, setServicePercent] = useState(10);
+
   // Resultados de backend
   const [ingredientsCostResult, setIngredientsCostResult] = useState(null);
   const [productCostResult, setProductCostResult] = useState(null);
@@ -104,11 +108,21 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
       return;
     }
 
+    // Validar porcentajes
+    if (ivaPercent < 0 || ivaPercent > 100) {
+      showToast("El porcentaje de IVA debe estar entre 0 y 100", "error");
+      return;
+    }
+    if (servicePercent < 0 || servicePercent > 100) {
+      showToast("El porcentaje de servicio debe estar entre 0 y 100", "error");
+      return;
+    }
+
     try {
       const response = await costAnalysisService.calculateTaxes({
         suggestedPricePerServing: price,
-        ivaPercent: 15,
-        servicePercent: 10,
+        ivaPercent: Number(ivaPercent),
+        servicePercent: Number(servicePercent),
       });
 
       // ⚡ CORRECCIÓN: no usar .data
@@ -133,8 +147,8 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
           quantity: i.selectedQuantity,
           unit: i.selectedUnit,
         })),
-        ivaPercent: 15, 
-        servicePercent: 10, 
+        ivaPercent: Number(ivaPercent), 
+        servicePercent: Number(servicePercent), 
       };
 
       console.log("PAYLOAD PARA CREAR ANALISIS:", payload); 
@@ -244,31 +258,78 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
               {/* STEP 3 */}
               {step === 3 && (
                 <>
-                  <p>
-                    Precio por porción: $
-                    {(
-                      Number(productCostResult?.suggestedPricePerServing) || 0
-                    ).toFixed(2)}
-                  </p>
+                  <div className="mt-4 p-4 bg-[#f5f2eb] rounded-lg">
+                    <p className="text-lg font-semibold mb-4">
+                      Precio por porción: $
+                      {(
+                        Number(productCostResult?.suggestedPricePerServing) || 0
+                      ).toFixed(2)}
+                    </p>
+                  </div>
+
+                  <div className="mt-6 space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800">Configurar Impuestos</h3>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Porcentaje de IVA (%)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={ivaPercent}
+                        onChange={(e) => setIvaPercent(e.target.value)}
+                        className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#adc4bc]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Porcentaje de Servicio (%)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={servicePercent}
+                        onChange={(e) => setServicePercent(e.target.value)}
+                        className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#adc4bc]"
+                      />
+                    </div>
+                  </div>
+
                   <button
                     onClick={handleCalculateTaxes}
-                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
+                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md hover:opacity-90"
                   >
-                    Siguiente
+                    Calcular Impuestos
                   </button>
                 </>
               )}
 
-              {/* STEP 4: solo IVA */}
+              {/* STEP 4: IVA y Servicio */}
               {step === 4 && taxesResult?.taxes && (
                 <>
-                  <p>
-                    IVA: $
-                    {(Number(taxesResult.taxes.ivaAmount) || 0).toFixed(2)}
-                  </p>
+                  <div className="mt-4 space-y-3">
+                    <div className="p-4 bg-[#f5f2eb] rounded-lg">
+                      <p className="text-gray-700">
+                        <span className="font-semibold">IVA ({taxesResult.taxes.ivaPercent}%):</span> $
+                        {(Number(taxesResult.taxes.ivaAmount) || 0).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-[#f5f2eb] rounded-lg">
+                      <p className="text-gray-700">
+                        <span className="font-semibold">Servicio ({taxesResult.taxes.servicePercent}%):</span> $
+                        {(Number(taxesResult.taxes.serviceAmount) || 0).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
                   <button
                     onClick={() => setStep(5)}
-                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
+                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md hover:opacity-90"
                   >
                     Ver total de impuestos
                   </button>
@@ -295,7 +356,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 </>
               )}
             </>
-          )}
+          )}  
         </div>
 
         <ConfirmationModal
