@@ -9,21 +9,22 @@ const CostAnalysisDetails = ({ analysis }) => {
 
   const exportPDF = () => {
     if (!analysis) return;
+
     const doc = new jsPDF();
     let y = 15;
 
-    // Color de título principal
-    doc.setTextColor(33, 37, 41); // gris oscuro
-    doc.setFontSize(18);
+    // ================= Título principal =================
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(33, 37, 41);
     doc.text("Detalle de Análisis de Costos", 105, y, { align: "center" });
     y += 15;
 
-    // Sección Receta
+    // ================= Receta =================
     doc.setFillColor(173, 196, 188); // verde suave
-    doc.rect(10, y, 190, 10, "F"); // rectángulo de fondo
-    doc.setTextColor(0, 0, 0);
+    doc.rect(10, y, 190, 10, "F");
     doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
     doc.text("Receta", 15, y + 7);
     y += 17;
@@ -35,7 +36,7 @@ const CostAnalysisDetails = ({ analysis }) => {
     doc.text(`Porciones: ${analysis.servings}`, 15, y);
     y += 10;
 
-    // Sección Ingredientes
+    // ================= Ingredientes =================
     doc.setFillColor(239, 239, 239); // gris claro
     doc.rect(10, y, 190, 10, "F");
     doc.setFont("helvetica", "bold");
@@ -55,42 +56,46 @@ const CostAnalysisDetails = ({ analysis }) => {
     });
     y += 5;
 
-    // Sección Costos
-    doc.setFillColor(173, 196, 188);
+    // ================= Costos en tabla =================
+    doc.setFillColor(173, 196, 188); // verde suave encabezado
     doc.rect(10, y, 190, 10, "F");
     doc.setFont("helvetica", "bold");
     doc.text("Costos", 15, y + 7);
     y += 15;
 
     doc.setFont("helvetica", "normal");
-    doc.text(
-      `Costo de ingredientes: $${analysis.ingredientsCost.toFixed(2)}`,
-      15,
-      y
-    );
-    y += 7;
-    doc.text(
-      `Costo total del producto: $${analysis.totalCost.toFixed(2)}`,
-      15,
-      y
-    );
-    y += 7;
-    doc.text(
-      `Costo por porción: $${analysis.costPerServing.toFixed(2)}`,
-      15,
-      y
-    );
-    y += 7;
-    doc.text(
-      `Precio sugerido por porción: $${analysis.suggestedPricePerServing.toFixed(
-        2
-      )}`,
-      15,
-      y
-    );
-    y += 10;
+    const tableData = [
+      ["Concepto", "Monto ($)"],
+      ["Costo de ingredientes", analysis.ingredientsCost.toFixed(2)],
+      ["Costo total del producto", analysis.totalCost.toFixed(2)],
+      ["Costo por porción", analysis.costPerServing.toFixed(2)],
+      [
+        "Precio sugerido por porción",
+        analysis.suggestedPricePerServing.toFixed(2),
+      ],
+    ];
 
-    // Sección Impuestos
+    // Dibujar tabla
+    const colX = [15, 120];
+    const rowHeight = 7;
+
+    tableData.forEach((row, i) => {
+      if (i === 0) doc.setFont("helvetica", "bold"); // encabezado
+      else doc.setFont("helvetica", "normal");
+
+      row.forEach((text, j) => {
+        doc.text(text.toString(), colX[j], y);
+      });
+
+      // líneas de separación
+      doc.setDrawColor(200);
+      doc.line(10, y + 2, 200, y + 2);
+      y += rowHeight;
+    });
+
+    y += 5;
+
+    // ================= Impuestos =================
     doc.setFillColor(239, 239, 239);
     doc.rect(10, y, 190, 10, "F");
     doc.setFont("helvetica", "bold");
@@ -98,30 +103,33 @@ const CostAnalysisDetails = ({ analysis }) => {
     y += 15;
 
     doc.setFont("helvetica", "normal");
-    doc.text(
-      `IVA (${analysis.taxes.ivaPercent}%): $${analysis.taxes.ivaAmount.toFixed(
-        2
-      )}`,
-      15,
-      y
-    );
-    y += 7;
-    doc.text(
-      `Servicio (${
-        analysis.taxes.servicePercent
-      }%): $${analysis.taxes.serviceAmount.toFixed(2)}`,
-      15,
-      y
-    );
-    y += 7;
-    doc.text(
-      `Total impuestos: $${analysis.taxes.totalTaxes.toFixed(2)}`,
-      15,
-      y
-    );
-    y += 10;
+    const taxData = [
+      [
+        "IVA",
+        `${analysis.taxes.ivaAmount.toFixed(2)} (${
+          analysis.taxes.ivaPercent
+        }%)`,
+      ],
+      [
+        "Servicio",
+        `${analysis.taxes.serviceAmount.toFixed(2)} (${
+          analysis.taxes.servicePercent
+        }%)`,
+      ],
+      ["Total impuestos", analysis.taxes.totalTaxes.toFixed(2)],
+    ];
 
-    // Precio final destacado
+    taxData.forEach((row, i) => {
+      row.forEach((text, j) => {
+        doc.text(text.toString(), colX[j], y);
+      });
+      doc.line(10, y + 2, 200, y + 2);
+      y += rowHeight;
+    });
+
+    y += 5;
+
+    // ================= Precio final =================
     doc.setFillColor(173, 196, 188);
     doc.rect(10, y, 190, 12, "F");
     doc.setFont("helvetica", "bold");

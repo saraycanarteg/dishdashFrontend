@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, Trash2 } from "lucide-react";
-import CostAnalysisDetails from "./CostAnalysisDetails"; // el componente de detalles
-import { Modal } from "../../components/ui/Modal"; // asumimos que tienes un modal reutilizable
+import CostAnalysisDetails from "./CostAnalysisDetails";
+import { Modal } from "../../components/ui/Modal"; 
 
 const CostAnalysisTable = ({
   analyses,
