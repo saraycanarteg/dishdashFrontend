@@ -89,8 +89,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         servings: Number(selectedRecipe?.servings) || 1,
         margin: 30,
       });
-
-      console.log("BACKEND productCostResult 👉", response);
+      console.log("BACKEND productCostResult", response);
 
       setProductCostResult(response);
       setStep(3);
@@ -118,7 +117,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         servicePercent: 10,
       });
 
-      setTaxesResult(response);
+      console.log("BACKEND taxesResult", response);
+
+      setTaxesResult(response.data);
       setStep(4);
     } catch (error) {
       console.error(error);
@@ -254,9 +255,13 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 </>
               )}
 
-              {step === 4 && (
+              {step === 4 && taxesResult && (
                 <>
-                  <p>Impuestos: ${taxesResult.totalTaxes}</p>
+                  <p>
+                    Impuestos: 
+                    {(Number(taxesResult.totalTaxes) || 0).toFixed(2)}
+                  </p>
+
                   <button
                     onClick={() => setConfirm({ open: true, loading: false })}
                     className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md"
