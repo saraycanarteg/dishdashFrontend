@@ -87,8 +87,10 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         ingredientsCost: Number(ingredientsCostResult?.ingredientsCost) || 0,
         indirectCost: Number(ingredientsCostResult?.indirectCost) || 0,
         servings: Number(selectedRecipe?.servings) || 1,
-        margin: 30, 
+        margin: 30,
       });
+
+      console.log("BACKEND productCostResult 👉", response); 
 
       setProductCostResult(response);
       setStep(3);
