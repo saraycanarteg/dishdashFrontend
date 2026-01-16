@@ -16,11 +16,19 @@ const costAnalysisService = {
   },
 
   calculateTaxes: async (data) => {
+    const payload = {
+      ...data,
+      pricePerServing: Number(data.pricePerServing),
+    };
+
+    console.log("SERVICE TAXES PAYLOAD", payload);
+
     return await axiosInstance.post(
       "/costanalysis/calculate/taxes",
-      data
+      payload
     );
   },
+
 
   getIngredientsOptions: async (recipeId) => {
     return await axiosInstance.get(

@@ -90,7 +90,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         margin: 30,
       });
 
-      console.log("BACKEND productCostResult 👉", response); 
+      console.log("BACKEND productCostResult 👉", response);
 
       setProductCostResult(response);
       setStep(3);
@@ -102,17 +102,18 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
 
   /* ================= STEP 3 ================= */
   const handleCalculateTaxes = async () => {
-    if (
-      !productCostResult?.pricePerServing ||
-      productCostResult.pricePerServing <= 0
-    ) {
+    const price = Number(productCostResult?.suggestedPricePerServing);
+
+    console.log("Precio para taxes 👉", price, typeof price);
+
+    if (!price || isNaN(price) || price <= 0) {
       showToast("El precio por porción no es válido", "error");
       return;
     }
 
     try {
       const response = await costAnalysisService.calculateTaxes({
-        suggestedPricePerServing: Number(productCostResult.pricePerServing),
+        suggestedPricePerServing: price,
         ivaPercent: 15,
         servicePercent: 10,
       });
@@ -240,7 +241,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 <>
                   <p>
                     Precio por porción: $
-                    {(Number(productCostResult?.suggestedPricePerServing) || 0).toFixed(2)}
+                    {(
+                      Number(productCostResult?.suggestedPricePerServing) || 0
+                    ).toFixed(2)}
                   </p>
                   <button
                     onClick={handleCalculateTaxes}
