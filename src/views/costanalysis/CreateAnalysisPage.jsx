@@ -119,7 +119,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
 
       console.log("BACKEND taxesResult", response);
 
-      setTaxesResult(response.data);
+      setTaxesResult(response);
       setStep(4);
     } catch (error) {
       console.error(error);
