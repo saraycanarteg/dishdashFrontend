@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, Search, Loader2 } from "lucide-react";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import recipeService from "../../services/recipe";
 import costAnalysisService from "../../services/costAnalysis";
@@ -19,7 +18,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   const [toast, setToast] = useState(null);
   const [confirm, setConfirm] = useState({ open: false, loading: false });
 
-  // Results from backend
+  // Resultados de backend
   const [ingredientsCostResult, setIngredientsCostResult] = useState(null);
   const [productCostResult, setProductCostResult] = useState(null);
   const [taxesResult, setTaxesResult] = useState(null);
@@ -89,8 +88,6 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         servings: Number(selectedRecipe?.servings) || 1,
         margin: 30,
       });
-      console.log("BACKEND productCostResult", response);
-
       setProductCostResult(response);
       setStep(3);
     } catch (error) {
@@ -102,9 +99,6 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   /* ================= STEP 3 ================= */
   const handleCalculateTaxes = async () => {
     const price = Number(productCostResult?.suggestedPricePerServing);
-
-    console.log("Precio para taxes 👉", price, typeof price);
-
     if (!price || isNaN(price) || price <= 0) {
       showToast("El precio por porción no es válido", "error");
       return;
@@ -117,8 +111,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         servicePercent: 10,
       });
 
-      console.log("BACKEND taxesResult", response);
-
+      // ⚡ CORRECCIÓN: no usar .data
       setTaxesResult(response);
       setStep(4);
     } catch (error) {
@@ -137,7 +130,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         ingredients,
         ingredientsCost: ingredientsCostResult,
         productCost: productCostResult,
-        taxes: taxesResult.taxes,
+        taxes: taxesResult?.taxes,
       });
       showToast("Análisis creado correctamente", "success");
       onSuccess();
@@ -163,16 +156,13 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         />
 
         <div className="bg-white rounded-lg border p-8">
-          {" "}
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {" "}
-            Crear Análisis de Costos{" "}
-          </h1>{" "}
+            Crear Análisis de Costos
+          </h1>
           <p className="text-gray-600 mb-8">
-            {" "}
-            Selecciona una receta y verifica los ingredientes para crear un
-            análisis{" "}
+            Selecciona una receta y verifica los ingredientes para crear un análisis
           </p>
+
           {!selectedRecipe ? (
             <>
               <input
@@ -194,10 +184,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
             </>
           ) : (
             <>
-              <h2 className="text-xl font-semibold mt-4">
-                {selectedRecipe.name}
-              </h2>
+              <h2 className="text-xl font-semibold mt-4">{selectedRecipe.name}</h2>
 
+              {/* STEP 1 */}
               {step === 1 && (
                 <>
                   {ingredients.map((i, idx) => (
@@ -224,11 +213,10 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 </>
               )}
 
+              {/* STEP 2 */}
               {step === 2 && (
                 <>
-                  <p>
-                    Costo ingredientes: ${ingredientsCostResult.ingredientsCost}
-                  </p>
+                  <p>Costo ingredientes: ${ingredientsCostResult.ingredientsCost}</p>
                   <button
                     onClick={handleCalculateProduct}
                     className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
@@ -238,13 +226,12 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 </>
               )}
 
+              {/* STEP 3 */}
               {step === 3 && (
                 <>
                   <p>
                     Precio por porción: $
-                    {(
-                      Number(productCostResult?.suggestedPricePerServing) || 0
-                    ).toFixed(2)}
+                    {(Number(productCostResult?.suggestedPricePerServing) || 0).toFixed(2)}
                   </p>
                   <button
                     onClick={handleCalculateTaxes}
@@ -255,18 +242,24 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 </>
               )}
 
+              {/* STEP 4: solo IVA */}
               {step === 4 && taxesResult?.taxes && (
                 <>
-                  <p>
-                    Impuestos: $
-                    {(Number(taxesResult.taxes.totalTaxes) || 0).toFixed(2)}
-                  </p>
+                  <p>IVA: ${(Number(taxesResult.taxes.ivaAmount) || 0).toFixed(2)}</p>
+                  <button
+                    onClick={() => setStep(5)}
+                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
+                  >
+                    Ver total de impuestos
+                  </button>
+                </>
+              )}
 
-                  <p>
-                    Precio final: $
-                    {(Number(taxesResult.finalPrice) || 0).toFixed(2)}
-                  </p>
-
+              {/* STEP 5: total impuestos + precio final */}
+              {step === 5 && taxesResult && (
+                <>
+                  <p>Total impuestos: ${(Number(taxesResult.taxes.totalTaxes) || 0).toFixed(2)}</p>
+                  <p>Precio final: ${(Number(taxesResult.finalPrice) || 0).toFixed(2)}</p>
                   <button
                     onClick={() => setConfirm({ open: true, loading: false })}
                     className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md"
