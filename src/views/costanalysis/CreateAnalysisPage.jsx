@@ -255,24 +255,34 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 </>
               )}
 
-              {step === 4 && taxesResult?.taxes && (
+              {step === 4 && (
                 <>
-                  <p>
-                    Impuestos: $
-                    {(Number(taxesResult.taxes.totalTaxes) || 0).toFixed(2)}
-                  </p>
+                  {!taxesResult && (
+                    <p className="text-gray-500">Calculando impuestos...</p>
+                  )}
 
-                  <p>
-                    Precio final: $
-                    {(Number(taxesResult.finalPrice) || 0).toFixed(2)}
-                  </p>
+                  {taxesResult?.taxes && (
+                    <>
+                      <p>
+                        Impuestos: $
+                        {(Number(taxesResult.taxes.totalTaxes) || 0).toFixed(2)}
+                      </p>
 
-                  <button
-                    onClick={() => setConfirm({ open: true, loading: false })}
-                    className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md"
-                  >
-                    Guardar análisis
-                  </button>
+                      <p>
+                        Precio final: $
+                        {(Number(taxesResult.finalPrice) || 0).toFixed(2)}
+                      </p>
+
+                      <button
+                        onClick={() =>
+                          setConfirm({ open: true, loading: false })
+                        }
+                        className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md"
+                      >
+                        Guardar análisis
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </>
