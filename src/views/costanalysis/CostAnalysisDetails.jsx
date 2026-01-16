@@ -39,7 +39,10 @@ const CostAnalysisDetails = ({ analysis }) => {
       ["Costo de ingredientes", analysis.ingredientsCost.toFixed(2)],
       ["Costo total del producto", analysis.totalCost.toFixed(2)],
       ["Costo por porción", analysis.costPerServing.toFixed(2)],
-      ["Precio sugerido por porción", analysis.suggestedPricePerServing.toFixed(2)],
+      [
+        "Precio sugerido por porción",
+        analysis.suggestedPricePerServing.toFixed(2),
+      ],
     ];
 
     const colX = [15, 120];
@@ -52,7 +55,10 @@ const CostAnalysisDetails = ({ analysis }) => {
     y += 15;
 
     tableData.forEach((row, i) => {
-      doc.setFont(i === 0 ? "helvetica" : "helvetica", i === 0 ? "bold" : "normal");
+      doc.setFont(
+        i === 0 ? "helvetica" : "helvetica",
+        i === 0 ? "bold" : "normal"
+      );
       row.forEach((text, j) => doc.text(text.toString(), colX[j], y));
       doc.setDrawColor(200);
       doc.line(10, y + 2, 200, y + 2);
@@ -63,8 +69,18 @@ const CostAnalysisDetails = ({ analysis }) => {
 
     // Impuestos tabla
     const taxData = [
-      ["IVA", `${analysis.taxes.ivaAmount.toFixed(2)} (${analysis.taxes.ivaPercent}%)`],
-      ["Servicio", `${analysis.taxes.serviceAmount.toFixed(2)} (${analysis.taxes.servicePercent}%)`],
+      [
+        "IVA",
+        `${analysis.taxes.ivaAmount.toFixed(2)} (${
+          analysis.taxes.ivaPercent
+        }%)`,
+      ],
+      [
+        "Servicio",
+        `${analysis.taxes.serviceAmount.toFixed(2)} (${
+          analysis.taxes.servicePercent
+        }%)`,
+      ],
       ["Total impuestos", analysis.taxes.totalTaxes.toFixed(2)],
     ];
 
@@ -88,7 +104,9 @@ const CostAnalysisDetails = ({ analysis }) => {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 0, 0);
     doc.text(
-      `Precio final: $${(analysis.suggestedPricePerServing + analysis.taxes.totalTaxes).toFixed(2)}`,
+      `Precio final: $${(
+        analysis.suggestedPricePerServing + analysis.taxes.totalTaxes
+      ).toFixed(2)}`,
       105,
       y + 8,
       { align: "center" }
@@ -102,8 +120,12 @@ const CostAnalysisDetails = ({ analysis }) => {
       {/* Receta */}
       <div className="p-4 bg-[#adc4bc] rounded shadow">
         <h2 className="text-lg font-bold mb-2">Receta</h2>
-        <p><strong>Nombre:</strong> {analysis.recipeName}</p>
-        <p><strong>Porciones:</strong> {analysis.servings}</p>
+        <p>
+          <strong>Nombre:</strong> {analysis.recipeName}
+        </p>
+        <p>
+          <strong>Porciones:</strong> {analysis.servings}
+        </p>
       </div>
 
       {/* Costos */}
@@ -119,19 +141,27 @@ const CostAnalysisDetails = ({ analysis }) => {
           <tbody>
             <tr className="bg-gray-50">
               <td className="border px-2 py-1">Costo de ingredientes</td>
-              <td className="border px-2 py-1">{analysis.ingredientsCost.toFixed(2)}</td>
+              <td className="border px-2 py-1">
+                {analysis.ingredientsCost.toFixed(2)}
+              </td>
             </tr>
             <tr>
               <td className="border px-2 py-1">Costo total del producto</td>
-              <td className="border px-2 py-1">{analysis.totalCost.toFixed(2)}</td>
+              <td className="border px-2 py-1">
+                {analysis.totalCost.toFixed(2)}
+              </td>
             </tr>
             <tr className="bg-gray-50">
               <td className="border px-2 py-1">Costo por porción</td>
-              <td className="border px-2 py-1">{analysis.costPerServing.toFixed(2)}</td>
+              <td className="border px-2 py-1">
+                {analysis.costPerServing.toFixed(2)}
+              </td>
             </tr>
             <tr>
               <td className="border px-2 py-1">Precio sugerido por porción</td>
-              <td className="border px-2 py-1">{analysis.suggestedPricePerServing.toFixed(2)}</td>
+              <td className="border px-2 py-1">
+                {analysis.suggestedPricePerServing.toFixed(2)}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -149,16 +179,26 @@ const CostAnalysisDetails = ({ analysis }) => {
           </thead>
           <tbody>
             <tr className="bg-gray-50">
-              <td className="border px-2 py-1">IVA ({analysis.taxes.ivaPercent}%)</td>
-              <td className="border px-2 py-1">{analysis.taxes.ivaAmount.toFixed(2)}</td>
+              <td className="border px-2 py-1">
+                IVA ({analysis.taxes.ivaPercent}%)
+              </td>
+              <td className="border px-2 py-1">
+                {analysis.taxes.ivaAmount.toFixed(2)}
+              </td>
             </tr>
             <tr>
-              <td className="border px-2 py-1">Servicio ({analysis.taxes.servicePercent}%)</td>
-              <td className="border px-2 py-1">{analysis.taxes.serviceAmount.toFixed(2)}</td>
+              <td className="border px-2 py-1">
+                Servicio ({analysis.taxes.servicePercent}%)
+              </td>
+              <td className="border px-2 py-1">
+                {analysis.taxes.serviceAmount.toFixed(2)}
+              </td>
             </tr>
             <tr className="bg-gray-50 font-bold">
               <td className="border px-2 py-1">Total impuestos</td>
-              <td className="border px-2 py-1">{analysis.taxes.totalTaxes.toFixed(2)}</td>
+              <td className="border px-2 py-1">
+                {analysis.taxes.totalTaxes.toFixed(2)}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -168,18 +208,18 @@ const CostAnalysisDetails = ({ analysis }) => {
       <div className="p-4 bg-[#adc4bc] rounded shadow text-center">
         <h2 className="text-lg font-bold mb-2">Precio final</h2>
         <p className="text-xl font-bold text-green-700">
-          ${(analysis.suggestedPricePerServing + analysis.taxes.totalTaxes).toFixed(2)}
+          $
+          {(
+            analysis.suggestedPricePerServing + analysis.taxes.totalTaxes
+          ).toFixed(2)}
         </p>
       </div>
 
       {/* Botón exportar */}
       <div className="flex justify-end">
-        <button
-          onClick={exportPDF}
-          className="bg-green-600 text-white px-4 py-2 rounded-md"
-        >
-          Exportar PDF
-        </button>
+        <div className="flex justify-end">
+          <Button onClick={exportPDF}>Exportar PDF</Button>
+        </div>
       </div>
     </div>
   );
