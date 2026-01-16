@@ -255,13 +255,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 </>
               )}
 
-              {step === 4 && taxesResult && (
+              {step === 4 && (
                 <>
-                  <p>
-                    Impuestos: 
-                    {(Number(taxesResult.totalTaxes) || 0).toFixed(2)}
-                  </p>
-
+                  <p>Impuestos: ${taxesResult.totalTaxes}</p>
                   <button
                     onClick={() => setConfirm({ open: true, loading: false })}
                     className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md"
