@@ -17,8 +17,9 @@ const costAnalysisService = {
 
   calculateTaxes: async (data) => {
     const payload = {
-      ...data,
-      pricePerServing: Number(data.pricePerServing),
+      ivaPercent: Number(data.ivaPercent),
+      servicePercent: Number(data.servicePercent),
+      pricePerServing: Number(data.suggestedPricePerServing), 
     };
 
     console.log("SERVICE TAXES PAYLOAD", payload);
@@ -28,6 +29,7 @@ const costAnalysisService = {
       payload
     );
   },
+
 
 
   getIngredientsOptions: async (recipeId) => {
