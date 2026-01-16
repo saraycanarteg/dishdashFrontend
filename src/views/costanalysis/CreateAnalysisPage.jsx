@@ -240,9 +240,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 <>
                   <p>
                     Precio por porción: $
-                    {(Number(productCostResult?.pricePerServing) || 0).toFixed(
-                      2
-                    )}
+                    {(Number(productCostResult?.suggestedPricePerServing) || 0).toFixed(2)}
                   </p>
                   <button
                     onClick={handleCalculateTaxes}
