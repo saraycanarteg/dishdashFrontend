@@ -36,26 +36,6 @@ const CostAnalysisDetails = ({ analysis }) => {
     doc.text(`Porciones: ${analysis.servings}`, 15, y);
     y += 10;
 
-    // ================= Ingredientes =================
-    doc.setFillColor(239, 239, 239); // gris claro
-    doc.rect(10, y, 190, 10, "F");
-    doc.setFont("helvetica", "bold");
-    doc.text("Ingredientes", 15, y + 7);
-    y += 15;
-
-    doc.setFont("helvetica", "normal");
-    analysis.ingredients.forEach((ing, idx) => {
-      doc.text(
-        `${idx + 1}. ${ing.ingredientName} - ${ing.selectedQuantity} ${
-          ing.selectedUnit
-        }`,
-        15,
-        y
-      );
-      y += 7;
-    });
-    y += 5;
-
     // ================= Costos en tabla =================
     doc.setFillColor(173, 196, 188); // verde suave encabezado
     doc.rect(10, y, 190, 10, "F");
@@ -148,49 +128,71 @@ const CostAnalysisDetails = ({ analysis }) => {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Detalle de Análisis de Costos</h1>
-      <p>
-        <strong>Receta:</strong> {analysis.recipeName}
-      </p>
-      <p>
-        <strong>Porciones:</strong> {analysis.servings}
+      <h2 className="text-xl font-bold mb-2">Receta</h2>
+      <p><strong>Nombre:</strong> {analysis.recipeName}</p>
+      <p><strong>Porciones:</strong> {analysis.servings}</p>
+
+      <h2 className="text-xl font-bold mt-4 mb-2">Costos</h2>
+      <table className="w-full border border-gray-300">
+        <thead className="bg-[#adc4bc]">
+          <tr>
+            <th className="border px-2 py-1 text-left">Concepto</th>
+            <th className="border px-2 py-1 text-left">Monto ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="bg-gray-50">
+            <td className="border px-2 py-1">Costo de ingredientes</td>
+            <td className="border px-2 py-1">{analysis.ingredientsCost.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td className="border px-2 py-1">Costo total del producto</td>
+            <td className="border px-2 py-1">{analysis.totalCost.toFixed(2)}</td>
+          </tr>
+          <tr className="bg-gray-50">
+            <td className="border px-2 py-1">Costo por porción</td>
+            <td className="border px-2 py-1">{analysis.costPerServing.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td className="border px-2 py-1">Precio sugerido por porción</td>
+            <td className="border px-2 py-1">{analysis.suggestedPricePerServing.toFixed(2)}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 className="text-xl font-bold mt-4 mb-2">Impuestos</h2>
+      <table className="w-full border border-gray-300">
+        <thead className="bg-gray-200">
+          <tr>
+            <th className="border px-2 py-1 text-left">Concepto</th>
+            <th className="border px-2 py-1 text-left">Monto ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="bg-gray-50">
+            <td className="border px-2 py-1">IVA ({analysis.taxes.ivaPercent}%)</td>
+            <td className="border px-2 py-1">{analysis.taxes.ivaAmount.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td className="border px-2 py-1">Servicio ({analysis.taxes.servicePercent}%)</td>
+            <td className="border px-2 py-1">{analysis.taxes.serviceAmount.toFixed(2)}</td>
+          </tr>
+          <tr className="bg-gray-50">
+            <td className="border px-2 py-1 font-bold">Total impuestos</td>
+            <td className="border px-2 py-1 font-bold">{analysis.taxes.totalTaxes.toFixed(2)}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 className="text-xl font-bold mt-4 mb-2">Precio final</h2>
+      <p className="text-lg font-bold text-green-700">
+        ${(analysis.suggestedPricePerServing + analysis.taxes.totalTaxes).toFixed(2)}
       </p>
 
-      <h2 className="text-xl font-semibold mt-4">Costos</h2>
-      <p>Costo de ingredientes: ${analysis.ingredientsCost.toFixed(2)}</p>
-      <p>Costo total del producto: ${analysis.totalCost.toFixed(2)}</p>
-      <p>Costo por porción: ${analysis.costPerServing.toFixed(2)}</p>
-      <p>
-        Precio sugerido por porción: $
-        {analysis.suggestedPricePerServing.toFixed(2)}
-      </p>
-
-      <h2 className="text-xl font-semibold mt-4">Impuestos</h2>
-      <p>
-        IVA ({analysis.taxes.ivaPercent}%): $
-        {analysis.taxes.ivaAmount.toFixed(2)}
-      </p>
-      <p>
-        Servicio ({analysis.taxes.servicePercent}%): $
-        {analysis.taxes.serviceAmount.toFixed(2)}
-      </p>
-      <p>Total impuestos: ${analysis.taxes.totalTaxes.toFixed(2)}</p>
-
-      <h2 className="text-xl font-semibold mt-4">Precio final</h2>
-      <p>
-        $
-        {(
-          analysis.suggestedPricePerServing + analysis.taxes.totalTaxes
-        ).toFixed(2)}
-      </p>
-
-      <div className="mt-4 flex gap-4">
-        <button
-          onClick={exportPDF}
-          className="bg-green-600 text-white px-4 py-2 rounded-md"
-        >
+      <div className="mt-4 flex justify-end">
+        <Button onClick={exportPDF} className="bg-green-600 text-white px-4 py-2 rounded-md">
           Exportar PDF
-        </button>
+        </Button>
       </div>
     </div>
   );
