@@ -84,29 +84,41 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   const handleCalculateProduct = async () => {
     try {
       const response = await costAnalysisService.calculateProductCost({
-        ingredientsCost: ingredientsCostResult.ingredientsCost,
-        indirectCost: ingredientsCostResult.indirectCost || 0,
-        servings: selectedRecipe.servings,
-        margin: 3,
+        ingredientsCost: Number(ingredientsCostResult?.ingredientsCost) || 0,
+        indirectCost: Number(ingredientsCostResult?.indirectCost) || 0,
+        servings: Number(selectedRecipe?.servings) || 1,
+        margin: 30, 
       });
+
       setProductCostResult(response);
       setStep(3);
-    } catch {
+    } catch (error) {
+      console.error(error);
       showToast("Error al calcular costo del producto", "error");
     }
   };
 
   /* ================= STEP 3 ================= */
   const handleCalculateTaxes = async () => {
+    if (
+      !productCostResult?.pricePerServing ||
+      productCostResult.pricePerServing <= 0
+    ) {
+      showToast("El precio por porción no es válido", "error");
+      return;
+    }
+
     try {
       const response = await costAnalysisService.calculateTaxes({
-        suggestedPricePerServing: productCostResult.pricePerServing,
+        suggestedPricePerServing: Number(productCostResult.pricePerServing),
         ivaPercent: 15,
         servicePercent: 10,
       });
+
       setTaxesResult(response);
       setStep(4);
-    } catch {
+    } catch (error) {
+      console.error(error);
       showToast("Error al calcular impuestos", "error");
     }
   };
