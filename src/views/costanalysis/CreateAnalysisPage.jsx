@@ -73,8 +73,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
           unit: i.selectedUnit,
         }))
       );
-
-      setIngredientsCostResult(response.data);
+      setIngredientsCostResult(response);
       setStep(2);
     } catch {
       showToast("Error al calcular ingredientes", "error");
@@ -84,19 +83,15 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   /* ================= STEP 2 ================= */
   const handleCalculateProduct = async () => {
     try {
-      if (!ingredientsCostResult) {
-        showToast("Primero calcula los ingredientes", "error");
-        return;
-      }
-
       const response = await costAnalysisService.calculateProductCost({
-        ingredientsCost: Number(ingredientsCostResult.ingredientsCost) || 0,
-        indirectCost: Number(ingredientsCostResult.indirectCost) || 0,
+        ingredientsCost: Number(ingredientsCostResult?.ingredientsCost) || 0,
+        indirectCost: Number(ingredientsCostResult?.indirectCost) || 0,
         servings: Number(selectedRecipe?.servings) || 1,
         margin: 30,
       });
+      console.log("BACKEND productCostResult", response);
 
-      setProductCostResult(response.data);
+      setProductCostResult(response);
       setStep(3);
     } catch (error) {
       console.error(error);
@@ -232,12 +227,8 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
               {step === 2 && (
                 <>
                   <p>
-                    Costo ingredientes: $
-                    {(
-                      Number(ingredientsCostResult?.ingredientsCost) || 0
-                    ).toFixed(2)}
+                    Costo ingredientes: ${ingredientsCostResult.ingredientsCost}
                   </p>
-
                   <button
                     onClick={handleCalculateProduct}
                     className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
@@ -264,16 +255,16 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 </>
               )}
 
-              {step === 4 && (
+              {step === 4 && taxesResult?.taxes && (
                 <>
                   <p>
                     Impuestos: $
-                    {(Number(taxesResult?.taxes?.totalTaxes) || 0).toFixed(2)}
+                    {(Number(taxesResult.taxes.totalTaxes) || 0).toFixed(2)}
                   </p>
 
                   <p>
                     Precio final: $
-                    {(Number(taxesResult?.finalPrice) || 0).toFixed(2)}
+                    {(Number(taxesResult.finalPrice) || 0).toFixed(2)}
                   </p>
 
                   <button
