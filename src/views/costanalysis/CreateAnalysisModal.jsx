@@ -326,12 +326,12 @@ const CreateAnalysisModal = ({ isOpen, onClose, onSuccess }) => {
 
                           {/* Unit Cost */}
                           <td className="py-4 px-4 text-gray-700">
-                            {line ? `$${line.unitCost.toFixed(4)}` : "-"}
+                            {line ? `$${(Number(line?.unitCost) || 0).toFixed(4)}` : "-"}
                           </td>
 
                           {/* Total Cost */}
                           <td className="py-4 px-4 font-semibold text-gray-800">
-                            {line ? `$${line.totalCost.toFixed(2)}` : "-"}
+                            {line ? `$${(Number(line?.totalCost) || 0).toFixed(2)}` : "-"}
                           </td>
                         </tr>
                       );
@@ -347,13 +347,13 @@ const CreateAnalysisModal = ({ isOpen, onClose, onSuccess }) => {
                     <div className="flex justify-between items-center py-2 border-b border-[#edcab4]">
                       <span className="text-gray-700">Costo de Ingredientes:</span>
                       <span className="font-semibold text-gray-800">
-                        ${calculation.ingredientsCost.toFixed(2)}
+                        ${(Number(calculation?.ingredientsCost) || 0).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-[#edcab4]">
                       <span className="text-gray-700">Costos Indirectos (25%):</span>
                       <span className="font-semibold text-gray-800">
-                        ${calculation.indirectCost.toFixed(2)}
+                        ${(Number(calculation?.indirectCost) || 0).toFixed(2)}
                       </span>
                     </div>
                   </div>

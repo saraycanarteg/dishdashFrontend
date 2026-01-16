@@ -57,7 +57,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         ingredientName: ing.ingredientName,
         productId: ing.productId,
         selectedQuantity: ing.quantity,
-        selectedUnit: ing.unit
+        selectedUnit: ing.unit,
       }))
     );
   };
@@ -70,7 +70,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
           ingredientName: i.ingredientName,
           productId: i.productId,
           quantity: i.selectedQuantity,
-          unit: i.selectedUnit
+          unit: i.selectedUnit,
         }))
       );
       setIngredientsCostResult(response);
@@ -87,7 +87,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         ingredientsCost: ingredientsCostResult.ingredientsCost,
         indirectCost: ingredientsCostResult.indirectCost || 0,
         servings: selectedRecipe.servings,
-        margin: 3
+        margin: 3,
       });
       setProductCostResult(response);
       setStep(3);
@@ -102,7 +102,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
       const response = await costAnalysisService.calculateTaxes({
         suggestedPricePerServing: productCostResult.pricePerServing,
         ivaPercent: 15,
-        servicePercent: 10
+        servicePercent: 10,
       });
       setTaxesResult(response);
       setStep(4);
@@ -121,7 +121,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         ingredients,
         ingredientsCost: ingredientsCostResult,
         productCost: productCostResult,
-        taxes: taxesResult
+        taxes: taxesResult,
       });
       showToast("Análisis creado correctamente", "success");
       onSuccess();
@@ -141,112 +141,131 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         <Breadcrumbs
           items={[
             { label: "Análisis de Costos", onClick: onBack },
-            { label: "Nuevo Análisis" }
+            { label: "Nuevo Análisis" },
+            { label: "Costo de ingredientes" },
           ]}
         />
 
-        {!selectedRecipe ? (
-          <>
-            <input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar receta..."
-              className="w-full border p-3 rounded-md mt-4"
-            />
-            {showResults &&
-              recipes.map((r) => (
-                <button
-                  key={r._id}
-                  onClick={() => handleSelectRecipe(r)}
-                  className="block w-full text-left p-3 border-b hover:bg-gray-50"
-                >
-                  {r.name}
-                </button>
-              ))}
-          </>
-        ) : (
-          <>
-            <h2 className="text-xl font-semibold mt-4">{selectedRecipe.name}</h2>
-
-            {step === 1 && (
-              <>
-                {ingredients.map((i, idx) => (
-                  <div key={idx} className="grid grid-cols-3 gap-3 mt-3">
-                    <input value={i.ingredientName} readOnly />
-                    <input
-                      type="number"
-                      value={i.selectedQuantity}
-                      onChange={(e) => {
-                        const copy = [...ingredients];
-                        copy[idx].selectedQuantity = +e.target.value;
-                        setIngredients(copy);
-                      }}
-                    />
-                    <input value={i.selectedUnit} readOnly />
-                  </div>
+        <div className="bg-white rounded-lg border p-8">
+          {" "}
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            {" "}
+            Crear Análisis de Costos{" "}
+          </h1>{" "}
+          <p className="text-gray-600 mb-8">
+            {" "}
+            Selecciona una receta y verifica los ingredientes para crear un
+            análisis{" "}
+          </p>
+          {!selectedRecipe ? (
+            <>
+              <input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar receta..."
+                className="w-full border p-3 rounded-md mt-4"
+              />
+              {showResults &&
+                recipes.map((r) => (
+                  <button
+                    key={r._id}
+                    onClick={() => handleSelectRecipe(r)}
+                    className="block w-full text-left p-3 border-b hover:bg-gray-50"
+                  >
+                    {r.name}
+                  </button>
                 ))}
-                <button
-                  onClick={handleCalculateIngredients}
-                  className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
-                >
-                  Siguiente
-                </button>
-              </>
-            )}
+            </>
+          ) : (
+            <>
+              <h2 className="text-xl font-semibold mt-4">
+                {selectedRecipe.name}
+              </h2>
 
-            {step === 2 && (
-              <>
-                <p>Costo ingredientes: ${ingredientsCostResult.ingredientsCost}</p>
-                <button
-                  onClick={handleCalculateProduct}
-                  className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
-                >
-                  Siguiente
-                </button>
-              </>
-            )}
+              {step === 1 && (
+                <>
+                  {ingredients.map((i, idx) => (
+                    <div key={idx} className="grid grid-cols-3 gap-3 mt-3">
+                      <input value={i.ingredientName} readOnly />
+                      <input
+                        type="number"
+                        value={i.selectedQuantity}
+                        onChange={(e) => {
+                          const copy = [...ingredients];
+                          copy[idx].selectedQuantity = +e.target.value;
+                          setIngredients(copy);
+                        }}
+                      />
+                      <input value={i.selectedUnit} readOnly />
+                    </div>
+                  ))}
+                  <button
+                    onClick={handleCalculateIngredients}
+                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
+                  >
+                    Siguiente
+                  </button>
+                </>
+              )}
 
-            {step === 3 && (
-              <>
-                <p>
-                  Precio por porción: $
-                  {productCostResult.pricePerServing.toFixed(2)}
-                </p>
-                <button
-                  onClick={handleCalculateTaxes}
-                  className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
-                >
-                  Siguiente
-                </button>
-              </>
-            )}
+              {step === 2 && (
+                <>
+                  <p>
+                    Costo ingredientes: ${ingredientsCostResult.ingredientsCost}
+                  </p>
+                  <button
+                    onClick={handleCalculateProduct}
+                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
+                  >
+                    Siguiente
+                  </button>
+                </>
+              )}
 
-            {step === 4 && (
-              <>
-                <p>Impuestos: ${taxesResult.totalTaxes}</p>
-                <button
-                  onClick={() => setConfirm({ open: true, loading: false })}
-                  className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md"
-                >
-                  Guardar análisis
-                </button>
-              </>
-            )}
-          </>
-        )}
+              {step === 3 && (
+                <>
+                  <p>
+                    Precio por porción: $
+                    {(Number(productCostResult?.pricePerServing) || 0).toFixed(
+                      2
+                    )}
+                  </p>
+                  <button
+                    onClick={handleCalculateTaxes}
+                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
+                  >
+                    Siguiente
+                  </button>
+                </>
+              )}
+
+              {step === 4 && (
+                <>
+                  <p>Impuestos: ${taxesResult.totalTaxes}</p>
+                  <button
+                    onClick={() => setConfirm({ open: true, loading: false })}
+                    className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md"
+                  >
+                    Guardar análisis
+                  </button>
+                </>
+              )}
+            </>
+          )}
+        </div>
+
+        <ConfirmationModal
+          isOpen={confirm.open}
+          title="Guardar análisis"
+          message="¿Deseas guardar este análisis de costos?"
+          confirmText="Guardar"
+          onConfirm={confirmCreate}
+          onCancel={() => setConfirm({ open: false, loading: false })}
+          loading={confirm.loading}
+        />
+
+        <Toast toast={toast} onClose={() => setToast(null)} />
       </div>
-
-      <ConfirmationModal
-        isOpen={confirm.open}
-        title="Guardar análisis"
-        message="¿Deseas guardar este análisis de costos?"
-        confirmText="Guardar"
-        onConfirm={confirmCreate}
-        onCancel={() => setConfirm({ open: false, loading: false })}
-        loading={confirm.loading}
-      />
-
-      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 };
