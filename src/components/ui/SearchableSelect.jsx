@@ -181,4 +181,3 @@ const SearchableSelect = ({
 
 export default SearchableSelect;
 
-export default SearchableSelect;
