@@ -204,9 +204,13 @@ const ConversionForm = ({ ingredients, units, onSuccess, onSaveSuccess }) => {
         data.toUnit = formData.toUnit;
       }
 
-      // Agregar ingredientId si existe
+      // Agregar ingredientId y nombre si existe
       if (formData.ingredientId) {
-        data.ingredientId = formData.ingredientId;
+        const ingredient = ingredients.find(i => i._id === formData.ingredientId);
+        if (ingredient) {
+          data.ingredientId = formData.ingredientId;
+          data.ingredientName = ingredient.name; // ✅ Enviar nombre del ingrediente
+        }
       }
 
       console.log('📤 Guardando conversión con resultado:', data);
