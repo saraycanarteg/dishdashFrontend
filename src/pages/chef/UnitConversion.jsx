@@ -31,11 +31,21 @@ export default function UnitConversion() {
         unitConversionService.getUnits()
       ]);
       
-      setConversions(conversionsRes.data.map(c => UnitConversionModel.fromResponse(c)));
-      setIngredients(ingredientsRes.data);
-      setUnits(unitsRes.data);
+      setConversions((conversionsRes.data || []).map(c => UnitConversionModel.fromResponse(c)));
+      setIngredients(ingredientsRes.data || []);
+      setUnits(unitsRes.data || { weight: [], volume: [], special: [] });
+      
+      console.log('Datos cargados:', {
+        conversiones: conversionsRes.data?.length || 0,
+        ingredientes: ingredientsRes.data?.length || 0,
+        unidades: unitsRes.data
+      });
     } catch (error) {
-      showToast({ type: 'error', message: 'Error cargando datos' });
+      console.error('Error cargando datos:', error);
+      showToast({ 
+        type: 'error', 
+        message: 'Error cargando datos: ' + (error.message || 'Error desconocido')
+      });
     } finally {
       setLoading(false);
     }
@@ -65,21 +75,11 @@ export default function UnitConversion() {
   );
 
   const totalConversions = conversions.length;
+  const totalUnits = (units.weight?.length || 0) + (units.volume?.length || 0);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-gray-600">
-            Conversión de Unidades
-          </h1>
-          <button className="px-4 py-2 bg-[#D4A89C] text-white rounded-md hover:bg-[#C49888]">
-            Salir
-          </button>
-        </div>
-
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-[#9FB9B3] rounded-lg p-6 text-white">
             <div className="text-sm opacity-90">Total Conversiones</div>
@@ -93,13 +93,10 @@ export default function UnitConversion() {
 
           <div className="bg-[#C9CBCB] rounded-lg p-6 text-white">
             <div className="text-sm opacity-90">Unidades Activas</div>
-            <div className="text-3xl font-bold mt-2">
-              {(units.weight?.length || 0) + (units.volume?.length || 0)}
-            </div>
+            <div className="text-3xl font-bold mt-2">{totalUnits}</div>
           </div>
         </div>
 
-        {/* Action Bar */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="flex flex-wrap gap-3 items-center">
             <div className="flex-1 min-w-[200px]">
@@ -130,7 +127,6 @@ export default function UnitConversion() {
           </div>
         </div>
 
-        {/* Table */}
         {loading ? (
           <div className="text-center py-12 text-gray-500">Cargando...</div>
         ) : (
@@ -140,18 +136,11 @@ export default function UnitConversion() {
           />
         )}
 
-        {/* Modals */}
         <ConversionFormModal
           isOpen={showFormModal}
-          onClose={() => {
-            setShowFormModal(false);
-            loadData();
-          }}
-          onSuccess={(toast) => {
-            showToast(toast);
-            setShowFormModal(false);
-            loadData();
-          }}
+          onClose={() => setShowFormModal(false)}
+          onSuccess={(toast) => showToast(toast)}
+          onConversionComplete={loadData}
           ingredients={ingredients}
           units={units}
         />
