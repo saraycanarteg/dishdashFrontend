@@ -58,8 +58,8 @@ export default function UnitConversion() {
     setToast({ ...config, id });
   };
 
-  const handleConversionSuccess = () => {
-    showToast({ type: 'success', message: 'Conversión guardada exitosamente' });
+  const handleConversionSuccess = (message = 'Conversión guardada exitosamente') => {
+    showToast({ type: 'success', message });
   };
 
   if (loading) {
@@ -93,7 +93,10 @@ export default function UnitConversion() {
           <ConversionForm
             ingredients={ingredients}
             units={units}
-            onSuccess={handleConversionSuccess}
+            onSuccess={showToast}
+            onSaveSuccess={() => {
+              console.log('✅ Conversión guardada desde el formulario');
+            }}
           />
         </div>
       </div>

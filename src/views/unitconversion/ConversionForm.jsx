@@ -3,7 +3,7 @@ import { RefreshCw } from 'lucide-react';
 import unitConversionService from '../../services/unitconversion';
 import SearchableSelect from '../../components/ui/SearchableSelect';
 
-const ConversionForm = ({ ingredients, units, onSuccess }) => {
+const ConversionForm = ({ ingredients, units, onSuccess, onSaveSuccess }) => {
   const [formData, setFormData] = useState({
     value: '',
     fromUnit: '',
@@ -99,10 +99,12 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    console.log(`📝 Campo ${name} cambió a:`, value);
     
     if (name === 'ingredientId' && value) {
       const ingredient = ingredients.find(i => i._id === value);
       if (ingredient) {
+        console.log('🥕 Ingrediente seleccionado:', ingredient);
         setFormData(prev => ({ ...prev, density: ingredient.density?.toString() || '1' }));
       }
     }
@@ -132,28 +134,51 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
       return;
     }
 
+    if (formData.conversionType === 'standard' && !formData.toUnit) {
+      onSuccess({ type: 'error', message: 'Selecciona la unidad de destino' });
+      return;
+    }
+
     try {
       const data = {
         value: parseFloat(formData.value),
         fromUnit: formData.fromUnit,
-        density: formData.density ? parseFloat(formData.density) : undefined,
-        ingredientId: formData.ingredientId || undefined
+        density: formData.density ? parseFloat(formData.density) : 1 // Enviar 1 en lugar de undefined
       };
 
+      // Agregar toUnit para conversión estándar
       if (formData.conversionType === 'standard') {
         data.toUnit = formData.toUnit;
       }
 
-      if (formData.conversionType === 'kitchen') {
-        await unitConversionService.kitchenConversion(data);
-      } else {
-        await unitConversionService.convertAndSave(data);
+      // Agregar ingredientId si existe
+      if (formData.ingredientId) {
+        data.ingredientId = formData.ingredientId;
       }
 
+      console.log('📤 Guardando conversión:', data);
+
+      let response;
+      if (formData.conversionType === 'kitchen') {
+        response = await unitConversionService.kitchenConversion(data);
+      } else {
+        response = await unitConversionService.convertAndSave(data);
+      }
+
+      console.log('✅ Respuesta del servidor:', response);
+
       onSuccess({ type: 'success', message: 'Conversión guardada exitosamente' });
+      
+      // Llamar callback si existe
+      if (onSaveSuccess) {
+        onSaveSuccess();
+      }
+      
       handleReset();
     } catch (err) {
-      onSuccess({ type: 'error', message: err.message || 'Error al guardar' });
+      console.error('❌ Error al guardar:', err);
+      const errorMsg = err.message || err.data?.message || 'Error al guardar la conversión';
+      onSuccess({ type: 'error', message: errorMsg });
     }
   };
 
