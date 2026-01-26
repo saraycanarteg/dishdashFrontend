@@ -38,26 +38,56 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
     setLoading(true);
 
     try {
+      // Calcular sin guardar - solo para mostrar resultado
       const data = {
         value: parseFloat(formData.value),
         fromUnit: formData.fromUnit,
-        density: formData.density ? parseFloat(formData.density) : undefined,
+        density: formData.density ? parseFloat(formData.density) : 1,
         ingredientId: formData.ingredientId || undefined
       };
 
-      let response;
+      let result = null;
+
       if (formData.conversionType === 'kitchen') {
-        response = await unitConversionService.kitchenConversion(data);
+        // Para conversión de cocina, intentar calcularlo
+        try {
+          result = await unitConversionService.kitchenConversion(data);
+        } catch (err) {
+          // Ignorar errores de guardado
+          console.log('Kitchen conversion error:', err.message);
+        }
       } else {
+        // Para conversión estándar, calcular manualmente
         data.toUnit = formData.toUnit;
-        response = await unitConversionService.convertAndSave(data);
+        
+        // Buscar unidades en la lista
+        const findUnit = (unitName) => {
+          const allUnits = [...units.weight, ...units.volume];
+          return allUnits.find(u => u.name === unitName);
+        };
+
+        const fromUnit = findUnit(formData.fromUnit);
+        const toUnit = findUnit(formData.toUnit);
+
+        if (fromUnit && toUnit && fromUnit.type === toUnit.type) {
+          // Mismo tipo de unidad - cálculo simple
+          const resultValue = (data.value * (fromUnit.toBase || 1)) / (toUnit.toBase || 1);
+          result = {
+            from: `${data.value} ${data.fromUnit}`,
+            to: `${resultValue.toFixed(2)} ${data.toUnit}`,
+            densityUsed: data.density
+          };
+        } else if (fromUnit && toUnit) {
+          // Diferentes tipos - usar el backend para calcular
+          try {
+            result = await unitConversionService.convert(data);
+          } catch (err) {
+            console.log('Conversion error:', err.message);
+          }
+        }
       }
 
-      setResult({
-        from: response.from,
-        to: response.to,
-        densityUsed: response.densityUsed
-      });
+      setResult(result);
     } catch (err) {
       setResult(null);
       setError(err.message || 'Error en la conversión');
