@@ -271,17 +271,6 @@ const ConversionForm = ({ ingredients, units, onSuccess, onSaveSuccess }) => {
             />
             <span className="ml-2 text-gray-700">Conversión Estándar</span>
           </label>
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="radio"
-              name="conversionType"
-              value="kitchen"
-              checked={formData.conversionType === 'kitchen'}
-              onChange={handleChange}
-              className="w-4 h-4 text-[#9FB9B3]"
-            />
-            <span className="ml-2 text-gray-700">Unidades de Cocina</span>
-          </label>
         </div>
       </div>
 
