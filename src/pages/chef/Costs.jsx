@@ -83,7 +83,6 @@ const Costs = () => {
     setToast({ id: Date.now(), message, type });
   };
 
-  // Calculate statistics
   const totalCost = analyses.reduce((sum, a) => sum + (a.totalCost || 0), 0);
   const averageCost =
     analyses.length > 0 ? totalCost / analyses.length : 0;
@@ -92,7 +91,6 @@ const Costs = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredAnalyses.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Show create page instead of modal
   if (showCreatePage) {
     return (
       <CreateAnalysisPage
@@ -190,5 +188,5 @@ const Costs = () => {
     </>
   );
 };
-
+  
 export default Costs;
