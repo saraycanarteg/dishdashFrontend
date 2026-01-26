@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import unitConversionService from '../../services/unitconversion';
 import SearchableSelect from '../../components/ui/SearchableSelect';
@@ -12,67 +12,30 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
     ingredientId: '',
     conversionType: 'standard'
   });
-  const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  // Realiza la conversión automáticamente cuando cambian los valores relevantes
+  useEffect(() => {
+    performConversion();
+  }, [formData.value, formData.fromUnit, formData.toUnit, formData.conversionType, formData.density, formData.ingredientId]);
+
+  const performConversion = async () => {
+    setError(null);
     
-    if (name === 'ingredientId' && value) {
-      const ingredient = ingredients.find(i => i._id === value);
-      if (ingredient) {
-        setFormData(prev => ({ ...prev, density: ingredient.density?.toString() || '1' }));
-      }
-    }
-
-    // Reset result when changing any conversion parameter
-    if (['value', 'fromUnit', 'toUnit', 'conversionType'].includes(name)) {
+    // Validar que hay valores para convertir
+    if (!formData.value || parseFloat(formData.value) <= 0 || !formData.fromUnit) {
       setResult(null);
+      return;
     }
-  };
 
-  const handleIngredientSelect = (ingredient) => {
-    if (ingredient) {
-      setFormData(prev => ({ 
-        ...prev, 
-        ingredientId: ingredient._id,
-        density: ingredient.density?.toString() || '1'
-      }));
-    } else {
-      setFormData(prev => ({ 
-        ...prev, 
-        ingredientId: '',
-        density: ''
-      }));
-    }
-    setResult(null);
-  };
-
-  const validateForm = () => {
-    if (!formData.value || parseFloat(formData.value) <= 0) {
-      return 'Ingresa una cantidad válida';
-    }
-    if (!formData.fromUnit) {
-      return 'Selecciona la unidad de origen';
-    }
     if (formData.conversionType === 'standard' && !formData.toUnit) {
-      return 'Selecciona la unidad de destino';
-    }
-    return null;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    const error = validateForm();
-    if (error) {
-      onSuccess({ type: 'error', message: error });
+      setResult(null);
       return;
     }
 
     setLoading(true);
-    setResult(null);
 
     try {
       const data = {
@@ -95,13 +58,72 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
         to: response.to,
         densityUsed: response.densityUsed
       });
-
-      onSuccess({ type: 'success', message: 'Conversión realizada exitosamente' });
-    } catch (error) {
-      const errorMsg = error.message || 'Error en la conversión';
-      onSuccess({ type: 'error', message: errorMsg });
+    } catch (err) {
+      setResult(null);
+      setError(err.message || 'Error en la conversión');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'ingredientId' && value) {
+      const ingredient = ingredients.find(i => i._id === value);
+      if (ingredient) {
+        setFormData(prev => ({ ...prev, density: ingredient.density?.toString() || '1' }));
+      }
+    }
+  };
+
+  const handleIngredientSelect = (ingredient) => {
+    if (ingredient) {
+      setFormData(prev => ({ 
+        ...prev, 
+        ingredientId: ingredient._id,
+        density: ingredient.density?.toString() || '1'
+      }));
+    } else {
+      setFormData(prev => ({ 
+        ...prev, 
+        ingredientId: '',
+        density: ''
+      }));
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+
+    if (!formData.value || !formData.fromUnit) {
+      onSuccess({ type: 'error', message: 'Completa los campos requeridos' });
+      return;
+    }
+
+    try {
+      const data = {
+        value: parseFloat(formData.value),
+        fromUnit: formData.fromUnit,
+        density: formData.density ? parseFloat(formData.density) : undefined,
+        ingredientId: formData.ingredientId || undefined
+      };
+
+      if (formData.conversionType === 'standard') {
+        data.toUnit = formData.toUnit;
+      }
+
+      if (formData.conversionType === 'kitchen') {
+        await unitConversionService.kitchenConversion(data);
+      } else {
+        await unitConversionService.convertAndSave(data);
+      }
+
+      onSuccess({ type: 'success', message: 'Conversión guardada exitosamente' });
+      handleReset();
+    } catch (err) {
+      onSuccess({ type: 'error', message: err.message || 'Error al guardar' });
     }
   };
 
@@ -115,12 +137,11 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
       conversionType: 'standard'
     });
     setResult(null);
+    setError(null);
   };
 
-  const allUnits = [...units.weight.map(u => u.name), ...units.volume.map(u => u.name)];
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6">
       {/* Tipo de Conversión */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -296,11 +317,12 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
       {/* Botones */}
       <div className="flex gap-3 pt-4">
         <button
-          type="submit"
-          disabled={loading}
+          type="button"
+          onClick={handleSave}
+          disabled={!result || loading}
           className="flex-1 px-6 py-3 bg-[#9FB9B3] text-white rounded-lg hover:bg-[#8FA3A0] disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
         >
-          {loading ? 'Procesando...' : 'Convertir'}
+          {loading ? 'Guardando...' : 'Guardar Conversión'}
         </button>
         <button
           type="button"
@@ -310,7 +332,14 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
           Limpiar
         </button>
       </div>
-    </form>
+
+      {/* Mensaje de error si hay */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+    </div>
   );
 };
 
