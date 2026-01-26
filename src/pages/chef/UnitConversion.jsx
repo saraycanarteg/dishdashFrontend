@@ -1,169 +1,98 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, Plus } from 'lucide-react';
-import { UnitConversion as UnitConversionModel } from '../../models/unitconversion';
+import { History } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import unitConversionService from '../../services/unitconversion';
 import ingredientService from '../../services/ingredient';
-import ConversionFormModal from '../../views/unitconversion/ConversionFormModal';
-import ConversionHistoryTable from '../../views/unitconversion/ConversionHistoryTable';
-import ConfirmationModal from '../../components/ui/ConfirmationModal';
+import ConversionForm from '../../views/unitconversion/ConversionForm';
 import Toast from '../../components/ui/Toast';
 
 export default function UnitConversion() {
-  const [conversions, setConversions] = useState([]);
+  const navigate = useNavigate();
   const [ingredients, setIngredients] = useState([]);
-  const [units, setUnits] = useState({ weight: [], volume: [], special: [] });
+  const [units, setUnits] = useState({ weight: [], volume: [] });
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
-  const [showFormModal, setShowFormModal] = useState(false);
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadData();
   }, []);
+
   const processUnits = (unitsArray) => {
     if (!Array.isArray(unitsArray)) return { weight: [], volume: [] };
     
     const activeUnits = unitsArray.filter(u => u.isActive);
     
     return {
-      weight: activeUnits.filter(u => u.type === 'weight').map(u => u.name),
-      volume: activeUnits.filter(u => u.type === 'volume').map(u => u.name)
+      weight: activeUnits.filter(u => u.type === 'weight').map(u => ({ name: u.name, toBase: u.toBase })),
+      volume: activeUnits.filter(u => u.type === 'volume').map(u => ({ name: u.name, toBase: u.toBase }))
     };
   };
-const loadData = async () => {
-  setLoading(true);
-  try {
-    const [conversionsRes, ingredientsRes, unitsRes] = await Promise.all([
-      unitConversionService.getAll(),
-      ingredientService.getAll(),
-      unitConversionService.getAllUnits() 
-    ]);
-    
-    setConversions((conversionsRes.data || []).map(c => UnitConversionModel.fromResponse(c)));
-    setIngredients(ingredientsRes.data || []);
 
-    const processedUnits = processUnits(unitsRes.data || []);
-    setUnits(processedUnits);
-    
-    console.log('✅ Datos cargados:', {
-      conversiones: conversionsRes.data?.length || 0,
-      ingredientes: ingredientsRes.data?.length || 0,
-      unidades: processedUnits
-    });
-  } catch (error) {
-    console.error('❌ Error cargando datos:', error);
-    showToast({ type: 'error', message: 'Error cargando datos' });
-  } finally {
-    setLoading(false);
-  }
-};
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [ingredientsRes, unitsRes] = await Promise.all([
+        ingredientService.getAll(),
+        unitConversionService.getAllUnits()
+      ]);
+      
+      setIngredients(ingredientsRes.data || []);
+      const processedUnits = processUnits(unitsRes.data || []);
+      setUnits(processedUnits);
+    } catch (error) {
+      console.error('❌ Error cargando datos:', error);
+      showToast({ type: 'error', message: 'Error cargando datos' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const showToast = (config) => {
     const id = Date.now();
     setToast({ ...config, id });
   };
 
-  const handleDelete = async () => {
-    try {
-      await unitConversionService.delete(confirmModal.id);
-      setConversions(prev => prev.filter(c => c._id !== confirmModal.id));
-      showToast({ type: 'success', message: 'Conversión eliminada' });
-    } catch (error) {
-      showToast({ type: 'error', message: 'Error al eliminar' });
-    } finally {
-      setConfirmModal({ isOpen: false, id: null });
-    }
+  const handleConversionSuccess = () => {
+    showToast({ type: 'success', message: 'Conversión guardada exitosamente' });
   };
 
-  const filteredConversions = conversions.filter(c =>
-    c.ingredientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.fromUnit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.toUnit?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const totalConversions = conversions.length;
-  const totalUnits = (units.weight?.length || 0) + (units.volume?.length || 0);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-500">Cargando...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-[#9FB9B3] rounded-lg p-6 text-white">
-            <div className="text-sm opacity-90">Total Conversiones</div>
-            <div className="text-3xl font-bold mt-2">{totalConversions}</div>
+      <div className="max-w-4xl mx-auto">
+        {/* Encabezado */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Convertidor de Unidades</h1>
+            <p className="text-gray-600 mt-2">Convierte entre diferentes unidades de medida</p>
           </div>
-          
-          <div className="bg-[#E8C8A0] rounded-lg p-6 text-white">
-            <div className="text-sm opacity-90">Ingredientes Disponibles</div>
-            <div className="text-3xl font-bold mt-2">{ingredients.length}</div>
-          </div>
-
-          <div className="bg-[#C9CBCB] rounded-lg p-6 text-white">
-            <div className="text-sm opacity-90">Unidades Activas</div>
-            <div className="text-3xl font-bold mt-2">{totalUnits}</div>
-          </div>
+          <button
+            onClick={() => navigate('/unit-conversion/history')}
+            className="px-4 py-2 bg-[#9FB9B3] text-white rounded-lg hover:bg-[#8FA3A0] flex items-center gap-2 transition"
+          >
+            <History className="w-5 h-5" />
+            Ver Historial
+          </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex flex-wrap gap-3 items-center">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Buscar por ingrediente o unidad..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent"
-                />
-              </div>
-            </div>
-            
-            <button className="px-4 py-2 bg-[#E8C8A0] text-white rounded-md hover:bg-[#D8B890] flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Exportar
-            </button>
-            
-            <button
-              onClick={() => setShowFormModal(true)}
-              className="px-4 py-2 bg-[#D4A89C] text-white rounded-md hover:bg-[#C49888] flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Nuevo
-            </button>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-12 text-gray-500">Cargando...</div>
-        ) : (
-          <ConversionHistoryTable
-            conversions={filteredConversions}
-            onDelete={(id) => setConfirmModal({ isOpen: true, id })}
+        {/* Formulario de Conversión */}
+        <div className="bg-white rounded-lg shadow-md p-8">
+          <ConversionForm
+            ingredients={ingredients}
+            units={units}
+            onSuccess={handleConversionSuccess}
           />
-        )}
-
-        <ConversionFormModal
-          isOpen={showFormModal}
-          onClose={() => setShowFormModal(false)}
-          onSuccess={(toast) => showToast(toast)}
-          onConversionComplete={loadData}
-          ingredients={ingredients}
-          units={units}
-        />
-
-        <ConfirmationModal
-          isOpen={confirmModal.isOpen}
-          title="Eliminar Conversión"
-          message="¿Estás seguro de que deseas eliminar esta conversión? Esta acción no se puede deshacer."
-          onConfirm={handleDelete}
-          onCancel={() => setConfirmModal({ isOpen: false, id: null })}
-          confirmText="Eliminar"
-        />
-
-        <Toast toast={toast} onClose={() => setToast(null)} />
+        </div>
       </div>
+
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

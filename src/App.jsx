@@ -13,6 +13,7 @@ import Clients from './pages/chef/Clients';
 import Recipes from './pages/chef/Recipes';
 import Ingredients from './pages/chef/Ingredients';
 import UnitConversion from './pages/chef/UnitConversion';
+import ConversionsHistoryPage from './pages/chef/ConversionsHistoryPage';
 import RecipeScaling from './pages/chef/RecipeScaling';
 import Costs from './pages/chef/Costs';
 import ChefQuotes from './pages/chef/Quotes';  
@@ -42,6 +43,7 @@ function App() {
                 <Route path="recipes" element={<Recipes />} />
                 <Route path="ingredients" element={<Ingredients />} />
                 <Route path="unit-conversion" element={<UnitConversion />} />
+                <Route path="unit-conversion/history" element={<ConversionsHistoryPage />} />
                 <Route path="recipe-scaling" element={<RecipeScaling />} />
                 <Route path="costs" element={<Costs />} />
                 <Route path="quotes-chef" element={<ChefQuotes />} />
