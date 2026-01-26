@@ -22,7 +22,7 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
     if (name === 'ingredientId' && value) {
       const ingredient = ingredients.find(i => i._id === value);
       if (ingredient) {
-        setFormData(prev => ({ ...prev, density: ingredient.density || '1' }));
+        setFormData(prev => ({ ...prev, density: ingredient.density?.toString() || '1' }));
       }
     }
 
@@ -37,7 +37,7 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
       setFormData(prev => ({ 
         ...prev, 
         ingredientId: ingredient._id,
-        density: ingredient.density || '1'
+        density: ingredient.density?.toString() || '1'
       }));
     } else {
       setFormData(prev => ({ 
@@ -246,25 +246,27 @@ const ConversionForm = ({ ingredients, units, onSuccess }) => {
         </div>
       )}
 
-      {/* Densidad (si se selecciona ingrediente) */}
-      {formData.ingredientId && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Densidad (g/ml)
-          </label>
-          <input
-            type="number"
-            name="density"
-            value={formData.density}
-            onChange={handleChange}
-            step="0.01"
-            min="0"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent"
-            disabled
-          />
-          <p className="text-xs text-gray-500 mt-1">Se obtiene automáticamente del ingrediente</p>
-        </div>
-      )}
+      {/* Densidad (Opcional - siempre editable) */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Densidad (g/ml) {formData.ingredientId && '- del ingrediente'}
+        </label>
+        <input
+          type="number"
+          name="density"
+          value={formData.density}
+          onChange={handleChange}
+          step="0.01"
+          min="0"
+          placeholder="Ej: 1.2 (opcional)"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          {formData.ingredientId 
+            ? 'Auto-completada del ingrediente. Edita si necesitas cambiarla.'
+            : 'Usa 1 para ingredientes sin densidad especial, o ingresa la densidad real.'}
+        </p>
+      </div>
 
       {/* Resultado */}
       {result && (

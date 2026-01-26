@@ -22,6 +22,10 @@ const SearchableSelect = ({
   );
 
   useEffect(() => {
+    console.log('🔍 SearchableSelect items:', items, 'filtered:', filteredItems);
+  }, [items, filteredItems]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
         setIsOpen(false);
@@ -174,5 +178,7 @@ const SearchableSelect = ({
     </div>
   );
 };
+
+export default SearchableSelect;
 
 export default SearchableSelect;

@@ -36,9 +36,15 @@ export default function UnitConversion() {
         unitConversionService.getAllUnits()
       ]);
       
-      setIngredients(ingredientsRes.data || []);
-      const processedUnits = processUnits(unitsRes.data || []);
+      // axiosInstance retorna response.data directamente
+      const ingredients = Array.isArray(ingredientsRes) ? ingredientsRes : (ingredientsRes.data || []);
+      const units = Array.isArray(unitsRes) ? unitsRes : (unitsRes.data || []);
+      
+      setIngredients(ingredients);
+      const processedUnits = processUnits(units);
       setUnits(processedUnits);
+      
+      console.log('✅ Datos cargados:', { ingredientes: ingredients.length, unidades: processedUnits });
     } catch (error) {
       console.error('❌ Error cargando datos:', error);
       showToast({ type: 'error', message: 'Error cargando datos' });
