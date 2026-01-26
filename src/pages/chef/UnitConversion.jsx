@@ -21,35 +21,43 @@ export default function UnitConversion() {
   useEffect(() => {
     loadData();
   }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [conversionsRes, ingredientsRes, unitsRes] = await Promise.all([
-        unitConversionService.getAll(),
-        ingredientService.getAll(),
-        unitConversionService.getUnits()
-      ]);
-      
-      setConversions((conversionsRes.data || []).map(c => UnitConversionModel.fromResponse(c)));
-      setIngredients(ingredientsRes.data || []);
-      setUnits(unitsRes.data || { weight: [], volume: [], special: [] });
-      
-      console.log('Datos cargados:', {
-        conversiones: conversionsRes.data?.length || 0,
-        ingredientes: ingredientsRes.data?.length || 0,
-        unidades: unitsRes.data
-      });
-    } catch (error) {
-      console.error('Error cargando datos:', error);
-      showToast({ 
-        type: 'error', 
-        message: 'Error cargando datos: ' + (error.message || 'Error desconocido')
-      });
-    } finally {
-      setLoading(false);
-    }
+  const processUnits = (unitsArray) => {
+    if (!Array.isArray(unitsArray)) return { weight: [], volume: [] };
+    
+    const activeUnits = unitsArray.filter(u => u.isActive);
+    
+    return {
+      weight: activeUnits.filter(u => u.type === 'weight').map(u => u.name),
+      volume: activeUnits.filter(u => u.type === 'volume').map(u => u.name)
+    };
   };
+const loadData = async () => {
+  setLoading(true);
+  try {
+    const [conversionsRes, ingredientsRes, unitsRes] = await Promise.all([
+      unitConversionService.getAll(),
+      ingredientService.getAll(),
+      unitConversionService.getAllUnits() 
+    ]);
+    
+    setConversions((conversionsRes.data || []).map(c => UnitConversionModel.fromResponse(c)));
+    setIngredients(ingredientsRes.data || []);
+
+    const processedUnits = processUnits(unitsRes.data || []);
+    setUnits(processedUnits);
+    
+    console.log('✅ Datos cargados:', {
+      conversiones: conversionsRes.data?.length || 0,
+      ingredientes: ingredientsRes.data?.length || 0,
+      unidades: processedUnits
+    });
+  } catch (error) {
+    console.error('❌ Error cargando datos:', error);
+    showToast({ type: 'error', message: 'Error cargando datos' });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const showToast = (config) => {
     const id = Date.now();

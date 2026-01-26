@@ -1,4 +1,4 @@
-export class UnitConversion {
+class UnitConversion {
   constructor(data = {}) {
     this._id = data._id || null;
     this.value = data.value || 0;
