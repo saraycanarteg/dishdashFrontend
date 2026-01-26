@@ -126,6 +126,40 @@ const ConversionForm = ({ ingredients, units, onSuccess, onSaveSuccess }) => {
     }
   };
 
+  const calculateResult = (value, fromUnitName, toUnitName, density = 1) => {
+    if (!fromUnitName || !toUnitName || !value) return null;
+
+    const findUnit = (unitName) => {
+      const allUnits = [...units.weight, ...units.volume];
+      return allUnits.find(u => u.name === unitName);
+    };
+
+    const fromUnit = findUnit(fromUnitName);
+    const toUnit = findUnit(toUnitName);
+
+    if (!fromUnit || !toUnit) return null;
+
+    // Mismo tipo
+    if (fromUnit.type === toUnit.type) {
+      return (value * (fromUnit.toBase || 1)) / (toUnit.toBase || 1);
+    }
+
+    // Diferentes tipos - usar densidad
+    if (fromUnit.type === 'weight' && toUnit.type === 'volume') {
+      const grams = value * (fromUnit.toBase || 1);
+      const ml = grams / density;
+      return ml / (toUnit.toBase || 1);
+    }
+
+    if (fromUnit.type === 'volume' && toUnit.type === 'weight') {
+      const ml = value * (fromUnit.toBase || 1);
+      const grams = ml * density;
+      return grams / (toUnit.toBase || 1);
+    }
+
+    return null;
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
 
@@ -140,10 +174,29 @@ const ConversionForm = ({ ingredients, units, onSuccess, onSaveSuccess }) => {
     }
 
     try {
+      const value = parseFloat(formData.value);
+      const density = formData.density ? parseFloat(formData.density) : 1;
+
+      // Calcular el resultado
+      let resultValue = null;
+      
+      if (formData.conversionType === 'standard') {
+        resultValue = calculateResult(value, formData.fromUnit, formData.toUnit, density);
+        
+        if (resultValue === null) {
+          onSuccess({ type: 'error', message: 'No se pudo calcular la conversión' });
+          return;
+        }
+      } else if (formData.conversionType === 'kitchen') {
+        // Para kitchen, el backend lo calcula
+        resultValue = null; // Se calculará en el backend
+      }
+
       const data = {
-        value: parseFloat(formData.value),
+        value: value,
         fromUnit: formData.fromUnit,
-        density: formData.density ? parseFloat(formData.density) : 1 // Enviar 1 en lugar de undefined
+        density: density,
+        result: resultValue // ✅ Enviar el resultado calculado
       };
 
       // Agregar toUnit para conversión estándar
@@ -156,7 +209,7 @@ const ConversionForm = ({ ingredients, units, onSuccess, onSaveSuccess }) => {
         data.ingredientId = formData.ingredientId;
       }
 
-      console.log('📤 Guardando conversión:', data);
+      console.log('📤 Guardando conversión con resultado:', data);
 
       let response;
       if (formData.conversionType === 'kitchen') {
