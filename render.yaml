@@ -4,6 +4,15 @@ services:
     runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
+    envVars:
+      - key: VITE_CRUD_API
+        value: https://recipemanagement-caj9.onrender.com/dishdash
+      - key: VITE_BUSINESS_API
+        value: https://recipemanagement-caj9.onrender.com/dishdash
+      - key: VITE_API_URL
+        value: https://recipemanagement-caj9.onrender.com/dishdash
+      - key: VITE_ASSETS_URL
+        value: https://recipemanagement-caj9.onrender.com
     headers:
       - path: /*
         name: Cache-Control

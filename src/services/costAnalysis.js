@@ -1,31 +1,47 @@
-import { axiosInstance } from "./api";
+import { axiosInstance, axiosBusinessInstance } from "./api";
 
 const costAnalysisService = {
+  // ========== BUSINESS LOGIC ENDPOINTS ==========
+  
+  // Cálculos individuales (Business Logic)
   calculateIngredientsCost: async (selectedIngredients) => {
-    return await axiosInstance.post(
+    return await axiosBusinessInstance.post(
       "/costanalysis/calculate/ingredients-cost",
       { selectedIngredients }
     );
   },
 
   calculateProductCost: async (data) => {
-    return await axiosInstance.post(
+    return await axiosBusinessInstance.post(
       "/costanalysis/calculate/product-cost",
       data
     );
   },
 
   calculateTaxes: async (data) => {
-    console.log("SERVICE TAXES PAYLOAD", data);
-
-    return await axiosInstance.post(
+    return await axiosBusinessInstance.post(
       "/costanalysis/calculate/taxes",
       data
     );
   },
 
+  // NUEVO: Calcular y guardar en un solo paso (Business Logic)
+  calculateAndSave: async (data) => {
+    return await axiosBusinessInstance.post(
+      "/costanalysis/calculate-and-save",
+      data
+    );
+  },
 
+  // NUEVO: Recalcular análisis existente (Business Logic)
+  recalculate: async (id, data) => {
+    return await axiosBusinessInstance.put(
+      `/costanalysis/${encodeURIComponent(id)}/recalculate`,
+      data
+    );
+  },
 
+  // ========== CRUD ENDPOINTS ==========
 
   getIngredientsOptions: async (recipeId) => {
     return await axiosInstance.get(
@@ -33,6 +49,7 @@ const costAnalysisService = {
     );
   },
 
+  // Guardar análisis PRE-CALCULADO (CRUD puro, sin cálculos)
   create: async (data) => {
     return await axiosInstance.post("/costanalysis", data);
   },
@@ -47,6 +64,7 @@ const costAnalysisService = {
     );
   },
 
+  // Actualizar análisis con datos PRE-CALCULADOS (CRUD puro)
   update: async (id, data) => {
     return await axiosInstance.put(
       `/costanalysis/${encodeURIComponent(id)}`,

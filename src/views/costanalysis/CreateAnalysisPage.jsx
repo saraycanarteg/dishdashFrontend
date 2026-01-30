@@ -18,11 +18,15 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   const [toast, setToast] = useState(null);
   const [confirm, setConfirm] = useState({ open: false, loading: false });
 
-  // Porcentajes de impuestos
+  // Parámetros para el cálculo
+  const [margin, setMargin] = useState(30);
   const [ivaPercent, setIvaPercent] = useState(15);
   const [servicePercent, setServicePercent] = useState(10);
 
-  // Resultados de backend
+  // NUEVO: Flag para elegir entre calcular paso a paso o calcular y guardar directo
+  const [useDirectSave, setUseDirectSave] = useState(true);
+
+  // Resultados de backend (solo si se usan cálculos paso a paso)
   const [ingredientsCostResult, setIngredientsCostResult] = useState(null);
   const [productCostResult, setProductCostResult] = useState(null);
   const [taxesResult, setTaxesResult] = useState(null);
@@ -90,7 +94,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         ingredientsCost: Number(ingredientsCostResult?.ingredientsCost) || 0,
         indirectCost: Number(ingredientsCostResult?.indirectCost) || 0,
         servings: Number(selectedRecipe?.servings) || 1,
-        margin: 30,
+        margin: Number(margin),
       });
       setProductCostResult(response);
       setStep(3);
@@ -139,24 +143,42 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
     setConfirm({ open: true, loading: true });
 
     try {
-      const payload = {
-        recipeId: selectedRecipe._id,
-        selectedIngredients: ingredients.map((i) => ({
-          ingredientName: i.ingredientName,
-          productId: i.productId,
-          quantity: i.selectedQuantity,
-          unit: i.selectedUnit,
-        })),
-        ivaPercent: Number(ivaPercent), 
-        servicePercent: Number(servicePercent), 
-      };
+      if (useDirectSave) {
+        // OPCIÓN 1: Usar el nuevo endpoint calculateAndSave (recomendado)
+        const payload = {
+          recipeId: selectedRecipe._id,
+          selectedIngredients: ingredients.map((i) => ({
+            ingredientName: i.ingredientName,
+            productId: i.productId,
+            quantity: i.selectedQuantity,
+            unit: i.selectedUnit,
+          })),
+          margin: Number(margin),
+          ivaPercent: Number(ivaPercent),
+          servicePercent: Number(servicePercent),
+        };
 
-      console.log("PAYLOAD PARA CREAR ANALISIS:", payload); 
+        await costAnalysisService.calculateAndSave(payload);
+        showToast("Análisis creado correctamente", "success");
+        onSuccess();
+      } else {
+        // OPCIÓN 2: Guardar análisis pre-calculado (método antiguo)
+        const payload = {
+          recipeId: selectedRecipe._id,
+          selectedIngredients: ingredients.map((i) => ({
+            ingredientName: i.ingredientName,
+            productId: i.productId,
+            quantity: i.selectedQuantity,
+            unit: i.selectedUnit,
+          })),
+          ivaPercent: Number(ivaPercent),
+          servicePercent: Number(servicePercent),
+        };
 
-      await costAnalysisService.create(payload);
-
-      showToast("Análisis creado correctamente", "success");
-      onSuccess();
+        await costAnalysisService.create(payload);
+        showToast("Análisis creado correctamente", "success");
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error al guardar análisis:", error);
       showToast("Error al guardar análisis", "error");
@@ -216,9 +238,14 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
               {/* STEP 1 */}
               {step === 1 && (
                 <>
+                  <h3 className="text-lg font-semibold mb-4">Ingredientes</h3>
                   {ingredients.map((i, idx) => (
                     <div key={idx} className="grid grid-cols-3 gap-3 mt-3">
-                      <input value={i.ingredientName} readOnly />
+                      <input 
+                        value={i.ingredientName} 
+                        readOnly 
+                        className="border p-2 rounded bg-gray-50"
+                      />
                       <input
                         type="number"
                         value={i.selectedQuantity}
@@ -227,49 +254,34 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                           copy[idx].selectedQuantity = +e.target.value;
                           setIngredients(copy);
                         }}
+                        className="border p-2 rounded"
                       />
-                      <input value={i.selectedUnit} readOnly />
+                      <input 
+                        value={i.selectedUnit} 
+                        readOnly 
+                        className="border p-2 rounded bg-gray-50"
+                      />
                     </div>
                   ))}
-                  <button
-                    onClick={handleCalculateIngredients}
-                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
-                  >
-                    Siguiente
-                  </button>
-                </>
-              )}
 
-              {/* STEP 2 */}
-              {step === 2 && (
-                <>
-                  <p>
-                    Costo ingredientes: ${ingredientsCostResult.ingredientsCost}
-                  </p>
-                  <button
-                    onClick={handleCalculateProduct}
-                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
-                  >
-                    Siguiente
-                  </button>
-                </>
-              )}
-
-              {/* STEP 3 */}
-              {step === 3 && (
-                <>
-                  <div className="mt-4 p-4 bg-[#f5f2eb] rounded-lg">
-                    <p className="text-lg font-semibold mb-4">
-                      Precio por porción: $
-                      {(
-                        Number(productCostResult?.suggestedPricePerServing) || 0
-                      ).toFixed(2)}
-                    </p>
-                  </div>
-
-                  <div className="mt-6 space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-800">Configurar Impuestos</h3>
+                  {/* Parámetros de cálculo */}
+                  <div className="mt-6 space-y-4 p-4 bg-gray-50 rounded-lg">
+                    <h3 className="text-lg font-semibold">Parámetros del Análisis</h3>
                     
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Margen (%)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={margin}
+                        onChange={(e) => setMargin(e.target.value)}
+                        className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#adc4bc]"
+                      />
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Porcentaje de IVA (%)
@@ -299,6 +311,71 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                         className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#adc4bc]"
                       />
                     </div>
+                  </div>
+
+                  {/* Botones de acción */}
+                  <div className="mt-6 flex gap-4">
+                    <button
+                      onClick={() => {
+                        setUseDirectSave(true);
+                        setConfirm({ open: true, loading: false });
+                      }}
+                      className="flex-1 bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition-all font-medium"
+                    >
+                      ✓ Calcular y Guardar
+                    </button>
+                    <button
+                      onClick={() => {
+                        setUseDirectSave(false);
+                        handleCalculateIngredients();
+                      }}
+                      className="flex-1 bg-[#adc4bc] text-white px-6 py-3 rounded-md hover:opacity-90 transition-all font-medium"
+                    >
+                      → Ver Cálculos Paso a Paso
+                    </button>
+                  </div>
+
+                  <p className="text-sm text-gray-600 mt-3 text-center">
+                    <strong>Recomendado:</strong> "Calcular y Guardar" crea el análisis directamente. 
+                    Usa "Ver Cálculos" solo si necesitas revisar cada paso.
+                  </p>
+                </>
+              )}
+
+              {/* STEP 2 */}
+              {step === 2 && (
+                <>
+                  <p>
+                    Costo ingredientes: ${ingredientsCostResult.ingredientsCost}
+                  </p>
+                  <button
+                    onClick={handleCalculateProduct}
+                    className="mt-6 bg-[#adc4bc] text-white px-6 py-2 rounded-md"
+                  >
+                    Siguiente
+                  </button>
+                </>
+              )}
+
+              {/* STEP 3 */}
+              {step === 3 && (
+                <>
+                  <div className="mt-4 p-4 bg-[#f5f2eb] rounded-lg">
+                    <p className="text-lg font-semibold mb-4">
+                      Precio por porción: $
+                      {(
+                        Number(productCostResult?.suggestedPricePerServing) || 0
+                      ).toFixed(2)}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Margen aplicado: {margin}%
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      IVA configurado: {ivaPercent}%
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Servicio configurado: {servicePercent}%
+                    </p>
                   </div>
 
                   <button
