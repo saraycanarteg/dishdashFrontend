@@ -1,22 +1,8 @@
 import { axiosInstance, axiosBusinessInstance } from "./api";
 
 const recipeService = {
-  // ========== CRUD ENDPOINTS ==========
-  
   getAll: async () => {
     return await axiosInstance.get("/recipes");
-  },
-  
-  getByCategory: async (category) => {
-    return await axiosInstance.get(
-      `/recipes/category/${encodeURIComponent(category)}`
-    );
-  },
-  
-  getByName: async (name) => {
-    return await axiosInstance.get(
-      `/recipes/name/${encodeURIComponent(name)}`
-    );
   },
   
   getById: async (id) => {
@@ -29,10 +15,9 @@ const recipeService = {
     });
   },
 
-  // Actualización simple SIN cálculos automáticos (CRUD puro)
   update: async (id, data) => {
     return await axiosInstance.put(
-      `/recipe/${encodeURIComponent(id)}`,
+      `/recipes/${encodeURIComponent(id)}`,
       data
     );
   },
@@ -55,12 +40,33 @@ const recipeService = {
     );
   },
 
-  // ========== BUSINESS LOGIC ENDPOINTS ==========
+  getByCategory: async (category) => {
+    return await axiosBusinessInstance.get(
+      `/recipes/category/${encodeURIComponent(category)}`
+    );
+  },
   
-  // NUEVO: Actualización CON recálculo automático de costos
-  updateWithCalculations: async (id, data) => {
+  getByName: async (name) => {
+    return await axiosBusinessInstance.get(
+      `/recipes/name/${encodeURIComponent(name)}`
+    );
+  },
+
+  calculateCosts: async (id) => {
+    return await axiosBusinessInstance.post(
+      `/recipe/${encodeURIComponent(id)}/calculate-costs`
+    );
+  },
+
+  recalculateCosts: async (id) => {
     return await axiosBusinessInstance.put(
-      `/recipe/${encodeURIComponent(id)}/with-calculations`,
+      `/recipe/${encodeURIComponent(id)}/recalculate-costs`
+    );
+  },
+
+  scale: async (id, data) => {
+    return await axiosBusinessInstance.post(
+      `/recipe/${encodeURIComponent(id)}/scale`,
       data
     );
   },

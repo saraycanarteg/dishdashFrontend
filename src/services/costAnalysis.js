@@ -1,9 +1,6 @@
-import { axiosInstance, axiosBusinessInstance } from "./api";
+import { axiosBusinessInstance } from "./api";
 
 const costAnalysisService = {
-  // ========== BUSINESS LOGIC ENDPOINTS ==========
-  
-  // Cálculos individuales (Business Logic)
   calculateIngredientsCost: async (selectedIngredients) => {
     return await axiosBusinessInstance.post(
       "/costanalysis/calculate/ingredients-cost",
@@ -25,7 +22,6 @@ const costAnalysisService = {
     );
   },
 
-  // NUEVO: Calcular y guardar en un solo paso (Business Logic)
   calculateAndSave: async (data) => {
     return await axiosBusinessInstance.post(
       "/costanalysis/calculate-and-save",
@@ -33,7 +29,6 @@ const costAnalysisService = {
     );
   },
 
-  // NUEVO: Recalcular análisis existente (Business Logic)
   recalculate: async (id, data) => {
     return await axiosBusinessInstance.put(
       `/costanalysis/${encodeURIComponent(id)}/recalculate`,
@@ -41,39 +36,35 @@ const costAnalysisService = {
     );
   },
 
-  // ========== CRUD ENDPOINTS ==========
-
   getIngredientsOptions: async (recipeId) => {
-    return await axiosInstance.get(
+    return await axiosBusinessInstance.get(
       `/costanalysis/recipe/${encodeURIComponent(recipeId)}/ingredients-options`
     );
   },
 
-  // Guardar análisis PRE-CALCULADO (CRUD puro, sin cálculos)
   create: async (data) => {
-    return await axiosInstance.post("/costanalysis", data);
+    return await axiosBusinessInstance.post("/costanalysis", data);
   },
 
   getAll: async () => {
-    return await axiosInstance.get("/costanalysis");
+    return await axiosBusinessInstance.get("/costanalysis");
   },
 
   getById: async (id) => {
-    return await axiosInstance.get(
+    return await axiosBusinessInstance.get(
       `/costanalysis/${encodeURIComponent(id)}`
     );
   },
 
-  // Actualizar análisis con datos PRE-CALCULADOS (CRUD puro)
   update: async (id, data) => {
-    return await axiosInstance.put(
+    return await axiosBusinessInstance.put(
       `/costanalysis/${encodeURIComponent(id)}`,
       data
     );
   },
 
   remove: async (id) => {
-    return await axiosInstance.delete(
+    return await axiosBusinessInstance.delete(
       `/costanalysis/${encodeURIComponent(id)}`
     );
   },

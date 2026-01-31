@@ -6,10 +6,16 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': {
-        target: 'https://recipemanagement-caj9.onrender.com/dishdash',
+      '/api/crud': {
+        target: 'https://recipemanagementcrud.onrender.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api\/crud/, '/dishdash'),
+        secure: true,
+      },
+      '/api/business': {
+        target: 'https://recipemanagementbusiness.onrender.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/business/, '/dishdash'),
         secure: true,
       }
     }

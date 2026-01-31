@@ -1,10 +1,8 @@
 import axios from 'axios';
 
-// Configuración de URLs base para CRUD y Business Logic
-const API_CRUD_URL = import.meta.env.VITE_CRUD_API || 'http://localhost:3007/dishdash';
-const API_BUSINESS_URL = import.meta.env.VITE_BUSINESS_API || 'http://localhost:3007/dishdash';
+const API_CRUD_URL = import.meta.env.VITE_API_CRUD_URL || '/api/crud';
+const API_BUSINESS_URL = import.meta.env.VITE_API_BUSINESS_URL || '/api/business';
 
-// Instancia para operaciones CRUD
 const axiosInstance = axios.create({
   baseURL: API_CRUD_URL,
   headers: {
@@ -12,7 +10,6 @@ const axiosInstance = axios.create({
   },
 });
 
-// Instancia para operaciones Business Logic
 const axiosBusinessInstance = axios.create({
   baseURL: API_BUSINESS_URL,
   headers: {
@@ -20,7 +17,6 @@ const axiosBusinessInstance = axios.create({
   },
 });
 
-// Interceptor de request para ambas instancias
 const requestInterceptor = (config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -36,7 +32,6 @@ const requestErrorInterceptor = (error) => {
 axiosInstance.interceptors.request.use(requestInterceptor, requestErrorInterceptor);
 axiosBusinessInstance.interceptors.request.use(requestInterceptor, requestErrorInterceptor);
 
-// Interceptor de response
 const responseSuccessInterceptor = (response) => {
   return response.data;
 };
@@ -84,50 +79,18 @@ axiosBusinessInstance.interceptors.response.use(
 const api = {
   auth: {
     login: async (email, password) => {
-      return await axiosInstance.post('/auth/login', { email, password });
+      return await axiosBusinessInstance.post('/auth/login', { email, password });
     },
     register: async (email, password, name) => {
-      return await axiosInstance.post('/auth/register', { email, password, name });
+      return await axiosBusinessInstance.post('/auth/register', { email, password, name });
     },
     googleAuth: () => {
-      window.location.href = `${API_BASE_URL}/auth/google`;
+      window.location.href = `${API_BUSINESS_URL}/auth/google`;
     },
-  },
-  recipes: {
-    getAll: async () => {
-      return await axiosInstance.get('/recipes');
+    verify: async () => {
+      return await axiosBusinessInstance.get('/auth/verify');
     },
-    getById: async (id) => {
-      return await axiosInstance.get(`/recipe/${id}`);
-    },
-    create: async (recipeData) => {
-      return await axiosInstance.post('/recipe', recipeData);
-    },
-    update: async (id, recipeData) => {
-      return await axiosInstance.put(`/recipe/${id}`, recipeData);
-    },
-    delete: async (id) => {
-      return await axiosInstance.delete(`/recipe/${id}`);
-    },
-  },
-
-  quotations: {
-    getAll: async () => {
-      return await axiosInstance.get('/quotations');
-    },
-    getById: async (id) => {
-      return await axiosInstance.get(`/quotation/${id}`);
-    },
-    create: async (quotationData) => {
-      return await axiosInstance.post('/quotations', quotationData);
-    },
-    update: async (id, quotationData) => {
-      return await axiosInstance.put(`/quotation/${id}`, quotationData);
-    },
-    delete: async (id) => {
-      return await axiosInstance.delete(`/quotation/${id}`);
-    },
-  },
+  }
 };
 
 export { axiosInstance, axiosBusinessInstance };
