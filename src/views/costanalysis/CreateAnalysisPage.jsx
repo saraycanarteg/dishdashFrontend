@@ -23,10 +23,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   const [ivaPercent, setIvaPercent] = useState(15);
   const [servicePercent, setServicePercent] = useState(10);
 
-  // NUEVO: Flag para elegir entre calcular paso a paso o calcular y guardar directo
-  const [useDirectSave, setUseDirectSave] = useState(true);
-
-  // Resultados de backend (solo si se usan cálculos paso a paso)
+  // Resultados de backend (cálculos en tiempo real)
   const [ingredientsCostResult, setIngredientsCostResult] = useState(null);
   const [productCostResult, setProductCostResult] = useState(null);
   const [taxesResult, setTaxesResult] = useState(null);
@@ -143,42 +140,23 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
     setConfirm({ open: true, loading: true });
 
     try {
-      if (useDirectSave) {
-        // OPCIÓN 1: Usar el nuevo endpoint calculateAndSave (recomendado)
-        const payload = {
-          recipeId: selectedRecipe._id,
-          selectedIngredients: ingredients.map((i) => ({
-            ingredientName: i.ingredientName,
-            productId: i.productId,
-            quantity: i.selectedQuantity,
-            unit: i.selectedUnit,
-          })),
-          margin: Number(margin),
-          ivaPercent: Number(ivaPercent),
-          servicePercent: Number(servicePercent),
-        };
+      // Guardar análisis con los cálculos realizados en tiempo real
+      const payload = {
+        recipeId: selectedRecipe._id,
+        selectedIngredients: ingredients.map((i) => ({
+          ingredientName: i.ingredientName,
+          productId: i.productId,
+          quantity: i.selectedQuantity,
+          unit: i.selectedUnit,
+        })),
+        margin: Number(margin),
+        ivaPercent: Number(ivaPercent),
+        servicePercent: Number(servicePercent),
+      };
 
-        await costAnalysisService.calculateAndSave(payload);
-        showToast("Análisis creado correctamente", "success");
-        onSuccess();
-      } else {
-        // OPCIÓN 2: Guardar análisis pre-calculado (método antiguo)
-        const payload = {
-          recipeId: selectedRecipe._id,
-          selectedIngredients: ingredients.map((i) => ({
-            ingredientName: i.ingredientName,
-            productId: i.productId,
-            quantity: i.selectedQuantity,
-            unit: i.selectedUnit,
-          })),
-          ivaPercent: Number(ivaPercent),
-          servicePercent: Number(servicePercent),
-        };
-
-        await costAnalysisService.create(payload);
-        showToast("Análisis creado correctamente", "success");
-        onSuccess();
-      }
+      await costAnalysisService.create(payload);
+      showToast("Análisis creado correctamente", "success");
+      onSuccess();
     } catch (error) {
       console.error("Error al guardar análisis:", error);
       showToast("Error al guardar análisis", "error");

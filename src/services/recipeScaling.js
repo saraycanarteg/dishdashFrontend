@@ -1,7 +1,6 @@
 import { axiosInstance, axiosBusinessInstance } from "./api";
 
 const recipeScalingService = {
-  // Escalado de recetas - Backend Business (cálculos)
   scaleRecipe: async (recipeId, data) => {
     return await axiosBusinessInstance.post(
       `/recipe/${encodeURIComponent(recipeId)}/scale`,
@@ -9,7 +8,6 @@ const recipeScalingService = {
     );
   },
 
-  // CRUD de recetas escaladas - Backend CRUD
   getAll: async () => {
     return await axiosInstance.get("/scaled-recipes");
   },

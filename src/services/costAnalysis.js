@@ -1,4 +1,4 @@
-import { axiosBusinessInstance } from "./api";
+import { axiosInstance, axiosBusinessInstance } from "./api";
 
 const costAnalysisService = {
   calculateIngredientsCost: async (selectedIngredients) => {
@@ -22,49 +22,35 @@ const costAnalysisService = {
     );
   },
 
-  calculateAndSave: async (data) => {
-    return await axiosBusinessInstance.post(
-      "/costanalysis/calculate-and-save",
-      data
-    );
-  },
-
-  recalculate: async (id, data) => {
-    return await axiosBusinessInstance.put(
-      `/costanalysis/${encodeURIComponent(id)}/recalculate`,
-      data
-    );
-  },
-
   getIngredientsOptions: async (recipeId) => {
-    return await axiosBusinessInstance.get(
+    return await axiosInstance.get(
       `/costanalysis/recipe/${encodeURIComponent(recipeId)}/ingredients-options`
     );
   },
 
   create: async (data) => {
-    return await axiosBusinessInstance.post("/costanalysis", data);
+    return await axiosInstance.post("/costanalysis", data);
   },
 
   getAll: async () => {
-    return await axiosBusinessInstance.get("/costanalysis");
+    return await axiosInstance.get("/costanalysis");
   },
 
   getById: async (id) => {
-    return await axiosBusinessInstance.get(
+    return await axiosInstance.get(
       `/costanalysis/${encodeURIComponent(id)}`
     );
   },
 
   update: async (id, data) => {
-    return await axiosBusinessInstance.put(
+    return await axiosInstance.put(
       `/costanalysis/${encodeURIComponent(id)}`,
       data
     );
   },
 
   remove: async (id) => {
-    return await axiosBusinessInstance.delete(
+    return await axiosInstance.delete(
       `/costanalysis/${encodeURIComponent(id)}`
     );
   },
