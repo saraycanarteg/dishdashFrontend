@@ -138,10 +138,13 @@ const Calendar = () => {
   const getQuotationsForDay = (day) => {
     const { year, month } = getDaysInMonth(currentDate);
     return quotations.filter(q => {
-      const eventDate = new Date(q.eventInfo.eventDate);
-      return eventDate.getFullYear() === year &&
-             eventDate.getMonth() === month &&
-             eventDate.getDate() === day;
+      // Parsear fecha sin conversión de zona horaria
+      const eventDateStr = q.eventInfo.eventDate.split('T')[0]; // "2026-02-15"
+      const [eventYear, eventMonth, eventDay] = eventDateStr.split('-').map(Number);
+      
+      return eventYear === year &&
+             (eventMonth - 1) === month && // Month es 0-indexed en JS
+             eventDay === day;
     });
   };
 
