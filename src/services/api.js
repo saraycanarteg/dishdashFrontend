@@ -108,7 +108,12 @@ const api = {
 
     // Google Calendar linking
     googleCalendarLink: () => {
-      window.location.href = `${API_BUSINESS_URL}/auth/google-calendar/link`;
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found. Please login again.');
+      }
+      // Enviamos el token como query parameter porque window.location no puede enviar headers
+      window.location.href = `${API_BUSINESS_URL}/auth/google-calendar/link?token=${token}`;
     },
 
     checkGoogleCalendarStatus: () =>
