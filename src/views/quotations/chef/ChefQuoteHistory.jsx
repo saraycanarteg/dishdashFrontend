@@ -115,27 +115,27 @@ const ChefQuoteHistory = ({ onBack, refreshKey = 0 }) => {
     setConfirm({ open: true, action: "approve", payload: quote, loading: false });
   };
 
-  const runConfirmedAction = async () => {
-    const { action, payload } = confirm;
-    setConfirm((prev) => ({ ...prev, loading: true }));
-    try {
-      if (action === "delete") {
-        await quotationService.remove(payload._id);
-        setQuotes((prev) => prev.filter((q) => q._id !== payload._id));
-        showToast("Cotización eliminada", "success");
-      }
-      if (action === "approve") {
-        const updated = await quotationService.approveAndSchedule(payload._id);
-        setQuotes((prev) => prev.map((q) => (q._id === payload._id ? new Quotation(updated) : q)));
-        showToast("Cotización aprobada y agendada", "success");
-      }
-    } catch (error) {
-      console.error("Error on action:", error);
-      showToast(error?.message || "Error en la operación", "error");
-    } finally {
-      setConfirm({ open: false, action: null, payload: null, loading: false });
+const runConfirmedAction = async () => {
+  const { action, payload } = confirm;
+  setConfirm((prev) => ({ ...prev, loading: true }));
+  try {
+    if (action === "delete") {
+      await quotationService.remove(payload._id);
+      setQuotes((prev) => prev.filter((q) => q._id !== payload._id));
+      showToast("Cotización eliminada", "success");
     }
-  };
+    if (action === "approve") {
+      await quotationService.updateStatus(payload._id, "approved");
+      setQuotes((prev) => prev.map((q) => (q._id === payload._id ? new Quotation({ ...q, status: "approved" }) : q)));
+      showToast("Cotización aprobada y agendada", "success");
+    }
+  } catch (error) {
+    console.error("Error on action:", error);
+    showToast(error?.message || "Error en la operación", "error");
+  } finally {
+    setConfirm({ open: false, action: null, payload: null, loading: false });
+  }
+};
 
   if (isLoading) {
     return (
@@ -160,7 +160,10 @@ const ChefQuoteHistory = ({ onBack, refreshKey = 0 }) => {
               Consulta y gestiona tus cotizaciones guardadas.
             </p>
           </div>
-          <button onClick={onBack} className="bg-[#9FB9B3] hover:bg-[#8aa59f] text-white">
+          <button 
+            onClick={onBack} 
+            className="bg-[#9FB9B3] hover:bg-[#8aa59f] text-white px-4 py-2 rounded-md font-medium transition-colors"
+          >
             Volver al formulario
           </button>
         </div>

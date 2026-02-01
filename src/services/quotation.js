@@ -2,74 +2,62 @@ import { axiosInstance, axiosBusinessInstance } from "./api";
 
 const quotationService = {
   getForCalendar: async () => {
-    const response = await axiosInstance.get("/quotations/calendar");
-    return response.data;
+    return await axiosInstance.get("/quotations/calendar");
   },
 
   getAll: async (params = {}) => {
-    const response = await axiosInstance.get("/quotations", { params });
-    return response.data;
+    return await axiosInstance.get("/quotations", { params });
   },
 
   getById: async (id) => {
-    const response = await axiosInstance.get(`/quotations/${encodeURIComponent(id)}`);
-    return response.data;
+    return await axiosInstance.get(`/quotations/${encodeURIComponent(id)}`);
   },
 
   createChefQuotation: async (payload) => {
-    const response = await axiosInstance.post("/quotations/chef-quotation", payload);
-    return response.data;
+    return await axiosInstance.post("/quotations/chef-quotation", payload);
   },
 
   create: async (payload) => {
-    const response = await axiosInstance.post("/quotations", payload);
-    return response.data;
+    return await axiosInstance.post("/quotations", payload);
   },
 
   update: async (id, data) => {
-    const response = await axiosInstance.put(`/quotations/${encodeURIComponent(id)}`, data);
-    return response.data;
+    return await axiosInstance.put(`/quotations/${encodeURIComponent(id)}`, data);
   },
 
   updateStatus: async (id, status) => {
-    const response = await axiosInstance.patch(
+    return await axiosInstance.patch(
       `/quotations/${encodeURIComponent(id)}/status`,
       { status }
     );
-    return response.data;
   },
 
   remove: async (id) => {
-    const response = await axiosInstance.delete(`/quotations/${encodeURIComponent(id)}`);
-    return response.data;
+    return await axiosInstance.delete(`/quotations/${encodeURIComponent(id)}`);
   },
 
   approveAndSchedule: async (id) => {
-    const response = await axiosBusinessInstance.patch(
+    return await axiosBusinessInstance.patch(
       `/quotations/${encodeURIComponent(id)}/approve-and-schedule`
     );
-    return response.data; 
   },
 
   createClientRequest: async (payload) => {
-    const response = await axiosInstance.post("/quotations/client-request", payload);
-    return response.data;
+    return await axiosInstance.post("/quotations/client-request", payload);
   },
 
   estimateClientRequest: async (payload) => {
-    const response = await axiosBusinessInstance.post(
+    return await axiosBusinessInstance.post(
       "/quotations/client-request/estimate",
       payload
     );
-    return response.data;
   },
 
   calculateChefQuotation: async (payload) => {
-    const response = await axiosBusinessInstance.post(
+    return await axiosBusinessInstance.post(
       "/quotations/chef-calculate",
       payload
     );
-    return response.data;
   }
 };
 
