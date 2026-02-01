@@ -3,6 +3,8 @@ import SearchableSelect from "../../../components/ui/SearchableSelect";
 import Button from "../../../components/ui/Button";
 import Toast from "../../../components/ui/Toast";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
+import Input from "../../../components/ui/Input";
+import Select from "../../../components/ui/Select";
 import recipeService from "../../../services/recipe";
 import quotationService from "../../../services/quotation";
 import { useAuth } from "../../../context/AuthContext";
@@ -381,9 +383,9 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Nombre completo" 
                   description="Nombre del cliente"
                 >
-                  <input
+                  <Input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                    className="w-full"
                     placeholder="Ej: Juan García"
                     value={clientInfo.name}
                     onChange={(e) =>
@@ -395,9 +397,9 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Teléfono" 
                   description="Número de contacto"
                 >
-                  <input
+                  <Input
                     type="tel"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                    className="w-full"
                     placeholder="Ej: +57 300 123 4567"
                     value={clientInfo.phone}
                     onChange={(e) =>
@@ -409,9 +411,9 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Email" 
                   description="Correo electrónico"
                 >
-                  <input
+                  <Input
                     type="email"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                    className="w-full"
                     placeholder="Ej: juan@example.com"
                     value={clientInfo.email}
                     onChange={(e) =>
@@ -431,8 +433,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Tipo de evento" 
                   description="Categoría del evento"
                 >
-                  <select
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Select className="w-full"
                     value={eventInfo.eventType}
                     onChange={(e) =>
                       setEventInfo((prev) => ({
@@ -446,16 +447,13 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                         {type.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </FormField>
                 <FormField 
                   label="Número de invitados" 
                   description="Cantidad total de personas"
                 >
-                  <input
-                    type="number"
-                    min="1"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="number" min="1" className="w-full"
                     placeholder="Ej: 50"
                     value={eventInfo.numberOfGuests}
                     onChange={(e) =>
@@ -470,9 +468,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Fecha del evento" 
                   description="Cuándo es el evento"
                 >
-                  <input
-                    type="date"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="date" className="w-full"
                     value={eventInfo.eventDate}
                     onChange={(e) =>
                       setEventInfo((prev) => ({
@@ -486,9 +482,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Hora del evento" 
                   description="A qué hora comienza"
                 >
-                  <input
-                    type="time"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="time" className="w-full"
                     value={eventInfo.eventTime}
                     onChange={(e) =>
                       setEventInfo((prev) => ({
@@ -502,9 +496,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Dirección" 
                   description="Ubicación del evento"
                 >
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="text" className="w-full"
                     placeholder="Ej: Calle 10 #50-30, Bogotá"
                     value={eventInfo.location.address}
                     onChange={(e) =>
@@ -519,9 +511,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Nombre del lugar" 
                   description="Salón, hotel, etc."
                 >
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="text" className="w-full"
                     placeholder="Ej: Salón Mi Gusto"
                     value={eventInfo.location.venueName}
                     onChange={(e) =>
@@ -539,9 +529,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Restricciones alimentarias" 
                   description="Alergias, preferencias, etc."
                 >
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="text" className="w-full"
                     placeholder="Ej: Sin gluten, veganos, alérgicos a frutos secos"
                     value={eventInfo.dietaryRestrictions}
                     onChange={(e) =>
@@ -556,9 +544,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Requerimientos especiales" 
                   description="Servicio, decoración, etc."
                 >
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="text" className="w-full"
                     placeholder="Ej: Meseros, decoración temática"
                     value={eventInfo.specialRequirements}
                     onChange={(e) =>
@@ -573,9 +559,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Cocina preferida" 
                   description="Estilo o tipo de comida"
                 >
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="text" className="w-full"
                     placeholder="Ej: Francesa, italiana, fusión"
                     value={eventInfo.preferredCuisine}
                     onChange={(e) =>
@@ -590,9 +574,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Notas adicionales" 
                   description="Información relevante"
                 >
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="text" className="w-full"
                     placeholder="Ej: Presupuesto flexible, margen de negociación"
                     value={eventInfo.additionalNotes}
                     onChange={(e) =>
@@ -701,7 +683,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                className="border border-gray-300 rounded-md px-2 py-2 text-sm focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none"
+                                className="border rounded-md px-2 py-2 text-sm focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none" style={{ borderColor: "#e5dfd8" }}
                                 value={ing.quantity}
                                 onChange={(e) =>
                                   handleIngredientChange(
@@ -714,7 +696,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                               />
                               <input
                                 type="text"
-                                className="border border-gray-300 rounded-md px-2 py-2 text-sm focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none"
+                                className="border rounded-md px-2 py-2 text-sm focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none" style={{ borderColor: "#e5dfd8" }}
                                 placeholder="g, ml, oz..."
                                 value={ing.unit}
                                 onChange={(e) =>
@@ -745,23 +727,19 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Tipo de descuento" 
                   description="Porcentaje o monto fijo"
                 >
-                  <select
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Select className="w-full"
                     value={discountType}
                     onChange={(e) => setDiscountType(e.target.value)}
                   >
                     <option value="percentage">Porcentaje (%)</option>
                     <option value="fixed">Monto fijo ($)</option>
-                  </select>
+                  </Select>
                 </FormField>
                 <FormField 
                   label="Valor del descuento" 
                   description="Descuento a aplicar"
                 >
-                  <input
-                    type="number"
-                    min="0"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="number" min="0" className="w-full"
                     placeholder="0"
                     value={discountValue}
                     onChange={(e) => setDiscountValue(e.target.value)}
@@ -771,11 +749,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="IVA (%)" 
                   description="Impuesto al valor agregado"
                 >
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="number" min="0" max="100" className="w-full"
                     placeholder="0"
                     value={ivaPercent}
                     onChange={(e) => setIvaPercent(e.target.value)}
@@ -785,11 +759,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Servicio (%)" 
                   description="Propina o costo de servicio"
                 >
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="number" min="0" max="100" className="w-full"
                     placeholder="0"
                     value={servicePercent}
                     onChange={(e) => setServicePercent(e.target.value)}
@@ -799,11 +769,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   label="Otros (%)" 
                   description="Otros impuestos o recargos"
                 >
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  <Input type="number" min="0" max="100" className="w-full"
                     placeholder="0"
                     value={otherPercent}
                     onChange={(e) => setOtherPercent(e.target.value)}
@@ -922,3 +888,5 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
 };
 
 export default ChefQuoteForm;
+
+

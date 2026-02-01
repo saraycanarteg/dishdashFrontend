@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal } from "../../../components/ui/Modal";
+import jsPDF from "jspdf";
 
 const formatCurrency = (value, currency = "$", decimals = 2) => {
   const numberValue = Number(value || 0);
@@ -30,6 +31,102 @@ const ChefQuoteDetailsModal = ({ quotation, isOpen, onClose }) => {
   if (!quotation) return null;
 
   const statusStyle = getStatusStyle(quotation.status);
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    
+    // Configurar fuente
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("COTIZACIÓN", 105, 20, { align: "center" });
+    
+    // Cliente
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("CLIENTE", 20, 35);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Nombre: ${quotation.clientInfo?.name || ""}`, 20, 42);
+    doc.text(`Teléfono: ${quotation.clientInfo?.phone || ""}`, 20, 48);
+    doc.text(`Email: ${quotation.clientInfo?.email || ""}`, 20, 54);
+    
+    // Evento
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("EVENTO", 110, 35);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Tipo: ${quotation.eventInfo?.eventType || ""}`, 110, 42);
+    doc.text(`Invitados: ${quotation.eventInfo?.numberOfGuests || 0}`, 110, 48);
+    doc.text(`Fecha: ${formatDate(quotation.eventInfo?.eventDate)} ${quotation.eventInfo?.eventTime || ""}`, 110, 54);
+    doc.text(`Lugar: ${quotation.eventInfo?.location?.venueName || ""}`, 110, 60);
+    
+    // Recetas
+    let yPos = 75;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("RECETAS", 20, yPos);
+    yPos += 7;
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    quotation.recipes?.forEach((recipe) => {
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFont("helvetica", "bold");
+      doc.text(`${recipe.recipeName}`, 20, yPos);
+      doc.text(`${formatCurrency(recipe.totalCost)}`, 180, yPos);
+      yPos += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(`${recipe.servings} porciones - ${formatCurrency(recipe.costPerServing)}/porción`, 25, yPos);
+      yPos += 5;
+      
+      recipe.lines?.forEach((line) => {
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(`- ${line.name}: ${line.quantity} ${line.unit}`, 30, yPos);
+        yPos += 4;
+      });
+      yPos += 3;
+      doc.setFontSize(10);
+    });
+    
+    // Totales
+    yPos += 5;
+    if (yPos > 250) {
+      doc.addPage();
+      yPos = 20;
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("TOTALES", 20, yPos);
+    yPos += 7;
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Subtotal:`, 20, yPos);
+    doc.text(`${formatCurrency(quotation.subtotal)}`, 180, yPos, { align: "right" });
+    yPos += 6;
+    doc.text(`Descuento:`, 20, yPos);
+    doc.text(`-${formatCurrency(quotation.discountAmount)}`, 180, yPos, { align: "right" });
+    yPos += 6;
+    doc.text(`Impuestos:`, 20, yPos);
+    doc.text(`${formatCurrency(quotation.taxes?.totalTaxes)}`, 180, yPos, { align: "right" });
+    yPos += 8;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(`TOTAL:`, 20, yPos);
+    doc.text(`${formatCurrency(quotation.totalAmount)}`, 180, yPos, { align: "right" });
+    
+    // Guardar
+    const fileName = `cotizacion_${quotation.clientInfo?.name?.replace(/\s+/g, '_') || 'cliente'}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -150,6 +247,16 @@ const ChefQuoteDetailsModal = ({ quotation, isOpen, onClose }) => {
                 <span className="text-[#2f6f5c]">{formatCurrency(quotation.totalAmount)}</span>
               </div>
             </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t" style={{ borderColor: "#e5dfd8" }}>
+            <button
+              onClick={handleExportPDF}
+              className="px-4 py-2 text-sm font-medium text-white rounded-md hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: "#9FB9B3" }}
+            >
+              📄 Exportar PDF
+            </button>
           </div>
         </div>
       </div>
