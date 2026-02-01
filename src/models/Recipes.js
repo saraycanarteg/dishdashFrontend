@@ -22,6 +22,7 @@ class Recipe {
     const errors = {};
     if (!this.name || this.name.trim() === '') errors.name = 'Name is required';
     if (!this.category || this.category.trim() === '') errors.category = 'Category is required';
+    if (!this.description || this.description.trim() === '') errors.description = 'Description is required';
     if (this.servings < 1) errors.servings = 'Servings must be at least 1';
     if (!Array.isArray(this.ingredients) || this.ingredients.length === 0) errors.ingredients = 'At least one ingredient is required';
     if (!Array.isArray(this.instructions) || this.instructions.length === 0) errors.instructions = 'At least one instruction is required';
