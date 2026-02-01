@@ -262,16 +262,6 @@ export default function RecipeScaling() {
   // Vista de listado principal
   return (
     <div className="h-full">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <Maximize2 />
-          Escalado de Recetas
-        </h1>
-        <p className="text-gray-600">
-          Gestiona tus escalados de recetas guardados
-        </p>
-      </div>
 
       {/* Filters */}
       <ScaledRecipeFilters
