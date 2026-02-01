@@ -27,7 +27,6 @@ const menuConfig = {
     {
       category: 'Gestión de Contenido',
       items: [
-        { id: 'clients', label: 'Clientes', icon: Users, path: '/clients' },
         { id: 'recipes', label: 'Gestión de Recetas', icon: ChefHat, path: '/recipes' },
         { id: 'ingredients', label: 'Gestión de Ingredientes', icon: Carrot, path: '/ingredients' }
       ]
