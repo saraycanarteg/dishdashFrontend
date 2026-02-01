@@ -9,7 +9,6 @@ import Dashboard from './components/layout/Dashboard';
 
 // Chef pages
 import Calendar from './pages/chef/Calendar';
-import Clients from './pages/chef/Clients';
 import Recipes from './pages/chef/Recipes';
 import Ingredients from './pages/chef/Ingredients';
 import UnitConversion from './pages/chef/UnitConversion';
@@ -39,7 +38,6 @@ function App() {
               {/* Chef Only Routes */}
               <Route element={<ProtectedRoute allowedRoles={['chef']} />}>
                 <Route path="calendar" element={<Calendar />} />
-                <Route path="clients" element={<Clients />} />
                 <Route path="recipes" element={<Recipes />} />
                 <Route path="ingredients" element={<Ingredients />} />
                 <Route path="unit-conversion" element={<UnitConversion />} />
