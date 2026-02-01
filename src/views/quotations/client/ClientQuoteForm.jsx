@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import Button from "../../../components/ui/Button";
 import Toast from "../../../components/ui/Toast";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import SearchableSelect from "../../../components/ui/SearchableSelect";
@@ -142,25 +141,28 @@ const ClientQuoteForm = () => {
       additionalNotes: "",
     });
     setBudgetRange({ min: 0, max: 0 });
+    setSelectedRecipes([]);
     setEstimate(null);
+    setConfirm({ open: false, action: null, loading: false });
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f2eb] p-4 md:p-8">
+    <div className="min-h-screen bg-white p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
+        {/* Header */}
+        <div className="mb-8 pb-6 border-b" style={{ borderColor: "#e5dfd8" }}>
           <h1 className="text-3xl font-semibold text-gray-800">
             Solicitar Cotización
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 mt-2">
             Completa tus datos y preferencias. Nuestros chefs te contactarán con una propuesta personalizada.
           </p>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
+        <div className="space-y-6">
           {/* Información del evento */}
-          <section>
-            <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-200">
+          <section className="bg-white border rounded-lg p-6 shadow-sm" style={{ borderColor: "#e5dfd8" }}>
+            <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
               Información del evento
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -169,7 +171,8 @@ const ClientQuoteForm = () => {
                 description="Categoría del evento"
               >
                 <select
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition bg-white"
+                  style={{ borderColor: "#e5dfd8" }}
                   value={eventInfo.eventType}
                   onChange={(e) =>
                     setEventInfo((prev) => ({ ...prev, eventType: e.target.value }))
@@ -189,7 +192,8 @@ const ClientQuoteForm = () => {
                 <input
                   type="number"
                   min="1"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   placeholder="Ej: 50"
                   value={eventInfo.numberOfGuests}
                   onChange={(e) =>
@@ -206,7 +210,8 @@ const ClientQuoteForm = () => {
               >
                 <input
                   type="date"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   value={eventInfo.eventDate}
                   onChange={(e) =>
                     setEventInfo((prev) => ({
@@ -222,7 +227,8 @@ const ClientQuoteForm = () => {
               >
                 <input
                   type="time"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   value={eventInfo.eventTime}
                   onChange={(e) =>
                     setEventInfo((prev) => ({
@@ -239,7 +245,8 @@ const ClientQuoteForm = () => {
               >
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   placeholder="Ej: Calle 10 #50-30, Bogotá"
                   value={eventInfo.location.address}
                   onChange={(e) =>
@@ -256,7 +263,8 @@ const ClientQuoteForm = () => {
               >
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   placeholder="Ej: Salón Mi Gusto"
                   value={eventInfo.location.venueName}
                   onChange={(e) =>
@@ -271,8 +279,8 @@ const ClientQuoteForm = () => {
           </section>
 
           {/* Preferencias */}
-          <section>
-            <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-200">
+          <section className="bg-white border rounded-lg p-6 shadow-sm" style={{ borderColor: "#e5dfd8" }}>
+            <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
               Preferencias y detalles
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -282,7 +290,8 @@ const ClientQuoteForm = () => {
               >
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   placeholder="Ej: Sin gluten, veganos, alérgicos a frutos secos"
                   value={eventInfo.dietaryRestrictions}
                   onChange={(e) =>
@@ -299,7 +308,8 @@ const ClientQuoteForm = () => {
               >
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   placeholder="Ej: Meseros, decoración temática"
                   value={eventInfo.specialRequirements}
                   onChange={(e) =>
@@ -316,7 +326,8 @@ const ClientQuoteForm = () => {
               >
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   placeholder="Ej: Francesa, italiana, fusión"
                   value={eventInfo.preferredCuisine}
                   onChange={(e) =>
@@ -333,7 +344,8 @@ const ClientQuoteForm = () => {
               >
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   placeholder="Ej: Presupuesto flexible, margen de negociación"
                   value={eventInfo.additionalNotes}
                   onChange={(e) =>
@@ -348,11 +360,11 @@ const ClientQuoteForm = () => {
           </section>
 
           {/* Recetas sugeridas */}
-          <section>
-            <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-200">
-              Recetas sugeridas (opcional)
+          <section className="bg-white border rounded-lg p-6 shadow-sm" style={{ borderColor: "#e5dfd8" }}>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
+              Recetas sugeridas <span className="text-sm font-normal text-gray-500">(opcional)</span>
             </h2>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600 mb-4 mt-4">
               Selecciona recetas específicas si lo deseas. Esto ayudará a los chefs a personalizar mejor tu propuesta.
             </p>
             <div className="mb-4">
@@ -374,7 +386,8 @@ const ClientQuoteForm = () => {
                 {selectedRecipes.map((recipe) => (
                   <div
                     key={recipe._id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                    className="flex items-center justify-between p-3 rounded-lg border"
+                    style={{ backgroundColor: "#f5f2eb", borderColor: "#e5dfd8" }}
                   >
                     <div>
                       <h3 className="font-medium text-gray-800">{recipe.name}</h3>
@@ -385,7 +398,7 @@ const ClientQuoteForm = () => {
                     <button
                       type="button"
                       onClick={() => handleRemoveRecipe(recipe._id)}
-                      className="text-sm px-3 py-1 text-red-500 hover:text-red-700 font-medium"
+                      className="text-sm px-3 py-1 text-red-500 hover:text-red-700 font-medium transition"
                     >
                       ✕ Quitar
                     </button>
@@ -396,10 +409,13 @@ const ClientQuoteForm = () => {
           </section>
 
           {/* Presupuesto */}
-          <section>
-            <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-200">
-              Rango de presupuesto (opcional)
+          <section className="bg-white border rounded-lg p-6 shadow-sm" style={{ borderColor: "#e5dfd8" }}>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
+              Rango de presupuesto <span className="text-sm font-normal text-gray-500">(opcional)</span>
             </h2>
+            <p className="text-sm text-gray-600 mb-4 mt-4">
+              Indica tu rango de inversión para recibir propuestas que se ajusten a tu presupuesto.
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField 
                 label="Presupuesto mínimo" 
@@ -408,7 +424,8 @@ const ClientQuoteForm = () => {
                 <input
                   type="number"
                   min="0"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   placeholder="Ej: 500000"
                   value={budgetRange.min}
                   onChange={(e) =>
@@ -426,7 +443,8 @@ const ClientQuoteForm = () => {
                 <input
                   type="number"
                   min="0"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#9FB9B3] focus:border-transparent outline-none transition"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
                   placeholder="Ej: 2000000"
                   value={budgetRange.max}
                   onChange={(e) =>
@@ -440,27 +458,42 @@ const ClientQuoteForm = () => {
             </div>
           </section>
 
+          {/* Estimado (si existe) */}
+          {estimate !== null && (
+            <div className="bg-white border rounded-lg p-6 shadow-sm" style={{ borderColor: "#e5dfd8" }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-1">Costo estimado base</h3>
+                  <p className="text-2xl font-bold" style={{ color: "#2f6f5c" }}>
+                    {formatCurrency(estimate)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    * Este es un estimado aproximado. El costo final puede variar según los detalles específicos.
+                  </p>
+                </div>
+                <div className="h-16 w-16 rounded-full flex items-center justify-center" style={{ backgroundColor: "#f5f2eb" }}>
+                  <span className="text-2xl">💰</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Acciones */}
-          <div className="flex flex-wrap gap-3 pt-4">
-            <Button 
-              onClick={handleEstimate} 
+          <div className="flex flex-wrap gap-3 pt-2">
+            <button
+              onClick={handleEstimate}
               disabled={isLoading}
-              className="bg-[#9FB9B3] hover:bg-[#8aa59f] text-white"
+              className="bg-[#adc4bc] hover:bg-[#9db1a8] text-white font-semibold px-6 py-2.5 rounded-md shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Calculando..." : "Ver estimado"}
-            </Button>
-            <Button
+            </button>
+            <button
               onClick={() => setConfirm({ open: true, action: "clear", loading: false })}
-              className="bg-gray-300 text-gray-800 hover:bg-gray-400"
+              className="bg-[#f5f2eb] hover:bg-[#e5dfd8] text-gray-800 font-semibold px-6 py-2.5 rounded-md shadow-sm transition-colors border"
+              style={{ borderColor: "#e5dfd8" }}
             >
-              Limpiar
-            </Button>
-            {estimate !== null && (
-              <div className="inline-flex items-center px-4 py-2 bg-[#E8D5C7] text-gray-800 rounded-md">
-                <span className="text-sm">Estimado base: </span>
-                <span className="font-semibold ml-2">{formatCurrency(estimate)}</span>
-              </div>
-            )}
+              Limpiar formulario
+            </button>
           </div>
         </div>
       </div>
@@ -473,23 +506,7 @@ const ClientQuoteForm = () => {
         message="Se perderán todos los datos actuales. ¿Deseas continuar?"
         confirmText="Limpiar"
         cancelText="Cancelar"
-        onConfirm={() => {
-          setEventInfo({
-            eventType: "wedding",
-            numberOfGuests: 0,
-            eventDate: "",
-            eventTime: "",
-            location: { address: "", venueName: "" },
-            specialRequirements: "",
-            dietaryRestrictions: "",
-            preferredCuisine: "",
-            additionalNotes: "",
-          });
-          setBudgetRange({ min: 0, max: 0 });
-          setSelectedRecipes([]);
-          setEstimate(null);
-          setConfirm({ open: false, action: null, loading: false });
-        }}
+        onConfirm={handleClear}
         onCancel={() => setConfirm({ open: false, action: null, loading: false })}
         loading={confirm.loading}
       />

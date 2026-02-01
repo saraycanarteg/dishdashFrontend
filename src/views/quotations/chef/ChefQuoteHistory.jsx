@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import Toast from "../../../components/ui/Toast";
-import Button from "../../../components/ui/Button";
 import quotationService from "../../../services/quotation";
 import ChefQuoteDetailsModal from "./ChefQuoteDetailsModal";
 import { useAuth } from "../../../context/AuthContext";
@@ -150,7 +149,7 @@ const ChefQuoteHistory = ({ onBack, refreshKey = 0 }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f2eb] p-4 md:p-8">
+    <div className="min-h-screen bg-[#FFFFFF] p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
@@ -161,9 +160,9 @@ const ChefQuoteHistory = ({ onBack, refreshKey = 0 }) => {
               Consulta y gestiona tus cotizaciones guardadas.
             </p>
           </div>
-          <Button onClick={onBack} className="bg-[#9FB9B3] hover:bg-[#8aa59f] text-white">
+          <button onClick={onBack} className="bg-[#9FB9B3] hover:bg-[#8aa59f] text-white">
             Volver al formulario
-          </Button>
+          </button>
         </div>
 
         <div className="bg-white p-4 rounded-lg border shadow-sm mb-4" style={{ borderColor: "#e5dfd8" }}>
