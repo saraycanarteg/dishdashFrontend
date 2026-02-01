@@ -105,6 +105,17 @@ const api = {
     },
 
     verify: () => axiosBusinessInstance.get('/auth/verify'),
+
+    // Google Calendar linking
+    googleCalendarLink: () => {
+      window.location.href = `${API_BUSINESS_URL}/auth/google-calendar/link`;
+    },
+
+    checkGoogleCalendarStatus: () =>
+      axiosBusinessInstance.get('/auth/google-calendar/status'),
+
+    unlinkGoogleCalendar: () =>
+      axiosBusinessInstance.delete('/auth/google-calendar/unlink'),
   },
 };
 
