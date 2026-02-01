@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import SearchableSelect from "../../../components/ui/SearchableSelect";
-import Button from "../../../components/ui/Button";
 import Toast from "../../../components/ui/Toast";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import Input from "../../../components/ui/Input";
@@ -350,13 +349,13 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button 
-              onClick={onShowHistory} 
-              className="bg-[#e7c78a] hover:bg-[#d4b06f] text-white"
+            <button
+              onClick={onShowHistory}
+              className="bg-[#e7c78a] hover:bg-[#d4b06f] text-white font-semibold px-4 py-2 rounded-md shadow-sm transition-colors"
             >
               Ver historial
-            </Button>
-            <Button 
+            </button>
+            <button
               onClick={() =>
                 openConfirm({
                   action: "clear",
@@ -365,10 +364,10 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   confirmText: "Limpiar",
                 })
               }
-              className="bg-gray-300 text-gray-800 hover:bg-gray-400"
+              className="bg-[#f5f2eb] hover:bg-[#e5dfd8] text-gray-800 font-semibold px-4 py-2 rounded-md shadow-sm transition-colors border border-[#e5dfd8]"
             >
               Limpiar
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -779,14 +778,14 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
             </section>
 
             <div className="flex flex-wrap gap-3">
-              <Button 
-                onClick={handleCalculate} 
+              <button
+                onClick={handleCalculate}
                 disabled={isCalculating}
-                className="bg-[#9FB9B3] hover:bg-[#8aa59f] text-white"
+                className="bg-[#adc4bc] hover:bg-[#9db1a8] text-white font-semibold px-4 py-2 rounded-md shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isCalculating ? "Calculando..." : "Calcular cotización"}
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={() =>
                   openConfirm({
                     action: "save",
@@ -796,10 +795,10 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   })
                 }
                 disabled={isSaving || !calculation}
-                className="bg-[#adc4bc] hover:bg-[#9db1a8] text-white"
+                className="bg-[#edcab4] hover:bg-[#ddb89f] text-white font-semibold px-4 py-2 rounded-md shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? "Guardando..." : "Guardar cotización"}
-              </Button>
+              </button>
             </div>
           </div>
 
@@ -888,5 +887,3 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
 };
 
 export default ChefQuoteForm;
-
-
