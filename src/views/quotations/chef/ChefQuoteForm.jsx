@@ -350,7 +350,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
           <div className="flex items-center gap-3">
             <Button 
               onClick={onShowHistory} 
-              className="bg-[#9FB9B3] hover:bg-[#8aa59f] text-white"
+              className="bg-[#e7c78a] hover:bg-[#d4b06f] text-white"
             >
               Ver historial
             </Button>
