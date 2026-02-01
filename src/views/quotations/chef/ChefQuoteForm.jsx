@@ -372,8 +372,8 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <section className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-200">
+            <section className="bg-white p-6 rounded-lg border shadow-sm" style={{ borderColor: "#e5dfd8" }}>
+              <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
                 Información del cliente
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -422,8 +422,8 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
               </div>
             </section>
 
-            <section className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-200">
+            <section className="bg-white p-6 rounded-lg border shadow-sm" style={{ borderColor: "#e5dfd8" }}>
+              <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
                 Información del evento
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -606,8 +606,8 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
               </div>
             </section>
 
-            <section className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5 pb-3 border-b border-gray-200">
+            <section className="bg-white p-6 rounded-lg border shadow-sm" style={{ borderColor: "#e5dfd8" }}>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
                 <h2 className="text-lg font-semibold text-gray-800">
                   Recetas del menú
                 </h2>
@@ -637,7 +637,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
               ) : (
                 <div className="space-y-3">
                   {selectedRecipes.map((recipe) => (
-                    <div key={recipe.recipeId} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div key={recipe.recipeId} className="border rounded-lg p-4" style={{ borderColor: "#e5dfd8", backgroundColor: "#f5f2eb" }}>
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
                         <div>
                           <h3 className="font-semibold text-gray-800">
@@ -648,7 +648,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                           </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-md px-2 py-1">
+                          <div className="flex items-center gap-2 bg-white border rounded-md px-2 py-1" style={{ borderColor: "#e5dfd8" }}>
                             <label className="text-xs font-medium text-gray-600">
                               Porciones:
                             </label>
@@ -683,7 +683,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                       </div>
 
                       {recipe.expanded && (
-                        <div className="mt-4 pt-3 border-t border-gray-300 space-y-2">
+                        <div className="mt-4 pt-3 border-t space-y-2" style={{ borderColor: "#e5dfd8" }}>
                           <div className="grid grid-cols-1 md:grid-cols-5 gap-2 text-xs font-medium text-gray-600 mb-2">
                             <div className="md:col-span-2">Ingrediente</div>
                             <div>Cantidad</div>
@@ -694,7 +694,7 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                               key={`${recipe.recipeId}-${index}`}
                               className="grid grid-cols-1 md:grid-cols-5 gap-2 items-center"
                             >
-                              <div className="md:col-span-2 text-sm text-gray-700 bg-white p-2 rounded border border-gray-200">
+                              <div className="md:col-span-2 text-sm text-gray-700 bg-white p-2 rounded border" style={{ borderColor: "#e5dfd8" }}>
                                 {ing.name || "Ingrediente"}
                               </div>
                               <input
@@ -736,8 +736,8 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
               )}
             </section>
 
-            <section className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-200">
+            <section className="bg-white p-6 rounded-lg border shadow-sm" style={{ borderColor: "#e5dfd8" }}>
+              <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
                 Descuentos e impuestos
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -839,8 +839,8 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
 
           {/* Resumen lateral */}
           <aside className="lg:row-span-2">
-            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm sticky top-8">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200">
+            <div className="bg-white p-6 rounded-lg border shadow-sm sticky top-8" style={{ borderColor: "#e5dfd8" }}>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
                 Resumen de costos
               </h2>
               {calculation ? (
@@ -862,21 +862,21 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                         +{formatCurrency(calculation.taxes?.totalTaxes)}
                       </span>
                     </div>
-                    <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between">
+                    <div className="border-t pt-2 mt-2 flex justify-between" style={{ borderColor: "#e5dfd8" }}>
                       <span className="font-semibold text-gray-800">Total</span>
-                      <span className="text-lg font-bold" style={{ color: "#9FB9B3" }}>
+                      <span className="text-lg font-bold" style={{ color: "#2f6f5c" }}>
                         {formatCurrency(calculation.totalAmount)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-4">
+                  <div className="border-t pt-4" style={{ borderColor: "#e5dfd8" }}>
                     <h3 className="font-semibold text-gray-700 mb-3 text-sm">
                       Desglose de recetas
                     </h3>
                     <div className="space-y-3">
                       {calculation.recipes?.map((recipe) => (
-                        <div key={recipe.recipeId} className="text-sm bg-gray-50 p-3 rounded">
+                        <div key={recipe.recipeId} className="text-sm p-3 rounded" style={{ backgroundColor: "#f5f2eb" }}>
                           <div className="flex justify-between font-medium text-gray-800 mb-1">
                             <span className="truncate">{recipe.recipeName}</span>
                             <span className="ml-2">{formatCurrency(recipe.totalCost)}</span>
@@ -889,8 +889,8 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-4">
-                    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  <div className="border-t pt-4" style={{ borderColor: "#e5dfd8" }}>
+                    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: "#f5e8d8", color: "#8b5a2b" }}>
                       ⊘ Pendiente de guardar
                     </div>
                   </div>
