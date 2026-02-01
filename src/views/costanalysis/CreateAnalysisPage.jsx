@@ -18,17 +18,16 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   const [toast, setToast] = useState(null);
   const [confirm, setConfirm] = useState({ open: false, loading: false });
 
-  // Parámetros para el cálculo
   const [margin, setMargin] = useState(30);
   const [ivaPercent, setIvaPercent] = useState(15);
   const [servicePercent, setServicePercent] = useState(10);
 
-  // Resultados de backend (cálculos en tiempo real)
   const [ingredientsCostResult, setIngredientsCostResult] = useState(null);
   const [productCostResult, setProductCostResult] = useState(null);
   const [taxesResult, setTaxesResult] = useState(null);
 
-  /* ================= SEARCH RECIPE ================= */
+  const [useDirectSave, setUseDirectSave] = useState(false);
+
   useEffect(() => {
     const delay = setTimeout(() => {
       if (searchTerm.trim().length >= 2) handleSearch();
@@ -62,11 +61,14 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         productId: ing.productId,
         selectedQuantity: ing.quantity,
         selectedUnit: ing.unit,
-      }))
+      })),
     );
+    setStep(1);
+    setIngredientsCostResult(null);
+    setProductCostResult(null);
+    setTaxesResult(null);
   };
 
-  /* ================= STEP 1 ================= */
   const handleCalculateIngredients = async () => {
     try {
       const response = await costAnalysisService.calculateIngredientsCost(
@@ -75,7 +77,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
           productId: i.productId,
           quantity: i.selectedQuantity,
           unit: i.selectedUnit,
-        }))
+        })),
       );
       setIngredientsCostResult(response);
       setStep(2);
@@ -84,7 +86,6 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
     }
   };
 
-  /* ================= STEP 2 ================= */
   const handleCalculateProduct = async () => {
     try {
       const response = await costAnalysisService.calculateProductCost({
@@ -101,7 +102,6 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
     }
   };
 
-  /* ================= STEP 3 ================= */
   const handleCalculateTaxes = async () => {
     const price = Number(productCostResult?.suggestedPricePerServing);
     if (!price || isNaN(price) || price <= 0) {
@@ -109,7 +109,6 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
       return;
     }
 
-    // Validar porcentajes
     if (ivaPercent < 0 || ivaPercent > 100) {
       showToast("El porcentaje de IVA debe estar entre 0 y 100", "error");
       return;
@@ -126,7 +125,6 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
         servicePercent: Number(servicePercent),
       });
 
-      // ⚡ CORRECCIÓN: no usar .data
       setTaxesResult(response);
       setStep(4);
     } catch (error) {
@@ -135,28 +133,155 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
     }
   };
 
-  /* ================= SAVE ================= */
   const confirmCreate = async () => {
     setConfirm({ open: true, loading: true });
 
     try {
-      // Guardar análisis con los cálculos realizados en tiempo real
-      const payload = {
-        recipeId: selectedRecipe._id,
-        selectedIngredients: ingredients.map((i) => ({
-          ingredientName: i.ingredientName,
-          productId: i.productId,
-          quantity: i.selectedQuantity,
-          unit: i.selectedUnit,
-        })),
-        margin: Number(margin),
-        ivaPercent: Number(ivaPercent),
-        servicePercent: Number(servicePercent),
-      };
+      if (useDirectSave) {
+        const payload = {
+          recipeId: selectedRecipe._id,
+          selectedIngredients: ingredients.map((i) => ({
+            ingredientName: i.ingredientName,
+            productId: i.productId,
+            quantity: i.selectedQuantity,
+            unit: i.selectedUnit,
+          })),
+          margin: Number(margin),
+          ivaPercent: Number(ivaPercent),
+          servicePercent: Number(servicePercent),
+        };
 
-      await costAnalysisService.create(payload);
-      showToast("Análisis creado correctamente", "success");
-      onSuccess();
+        let result = null;
+        try {
+          result = await costAnalysisService.calculateCompleteCostAnalysis(payload);
+        } catch (calcErr) {
+          console.error('Error calculando completo en backend:', calcErr);
+          const shouldFallback = !calcErr || calcErr.status === 404 || (calcErr.message && calcErr.message.toLowerCase().includes('not found')) || (calcErr.message && calcErr.message.toLowerCase().includes('no response'));
+
+          if (shouldFallback) {
+            showToast('Cálculo completo no accesible, intentando cálculo paso a paso (fallback)', 'warning');
+            try {
+              const ingredientsResult = await costAnalysisService.calculateIngredientsCost(payload.selectedIngredients);
+
+              const productResult = await costAnalysisService.calculateProductCost({
+                ingredientsCost: Number(ingredientsResult.ingredientsCost) || 0,
+                indirectCost: Number(ingredientsResult.indirectCost) || 0,
+                servings: Number(selectedRecipe?.servings) || 1,
+                margin: Number(margin),
+              });
+
+              const taxesResult = await costAnalysisService.calculateTaxes({
+                suggestedPricePerServing: Number(productResult.suggestedPricePerServing) || 0,
+                ivaPercent: Number(ivaPercent),
+                servicePercent: Number(servicePercent),
+              });
+
+              result = {
+                recipeId: payload.recipeId,
+                recipeName: selectedRecipe?.name || '',
+                servings: Number(selectedRecipe?.servings) || 1,
+                lines: ingredientsResult.lines || [],
+                ingredientsCost: ingredientsResult.ingredientsCost || 0,
+                indirectCost: ingredientsResult.indirectCost || 0,
+                totalCost: productResult.totalCost || 0,
+                costPerServing: productResult.costPerServing || 0,
+                suggestedPricePerServing: productResult.suggestedPricePerServing || 0,
+                margin: productResult.margin || margin,
+                taxes: taxesResult.taxes || null,
+                finalPrice: taxesResult.finalPrice || null,
+              };
+            } catch (fallbackErr) {
+              console.error('Fallback paso a paso falló:', fallbackErr);
+              showToast('No fue posible calcular análisis (fallback falló)', 'error');
+              setConfirm({ open: false, loading: false });
+              return;
+            }
+          } else {
+            showToast(calcErr && calcErr.message ? calcErr.message : 'Error calculando análisis', 'error');
+            setConfirm({ open: false, loading: false });
+            return;
+          }
+        }
+
+        const createPayload = {
+          recipeId: result.recipeId,
+          recipeName: result.recipeName,
+          servings: Number(result.servings) || Number(selectedRecipe?.servings) || 1,
+
+          suggestedPricePerServing: Number(result.suggestedPricePerServing) || 0,
+          costPerServing: Number(result.costPerServing) || 0,
+          totalCost: Number(result.totalCost) || 0,
+          indirectCost: Number(result.indirectCost) || 0,
+          ingredientsCost: Number(result.ingredientsCost) || 0,
+
+          selectedIngredients: Array.isArray(result.lines)
+            ? result.lines.map((l) => ({
+                ingredientName: l.name,
+                productId: l.productId,
+                quantity: l.quantity,
+                unit: l.unit,
+                unitCost: l.unitCost,
+                totalCost: l.totalCost,
+              }))
+            : [],
+
+          margin: Number(result.margin) || Number(margin) || 0,
+          ivaPercent: Number(ivaPercent),
+          servicePercent: Number(servicePercent),
+
+          taxes: result.taxes || null,
+          finalPrice: result.finalPrice || null,
+        };
+
+        try {
+          const created = await costAnalysisService.create(createPayload);
+          showToast("Análisis creado correctamente (directo)", "success");
+          onSuccess(created);
+        } catch (createErr) {
+          console.error('Error guardando análisis directo:', createErr);
+          showToast('Análisis calculado pero error al guardar en servidor', 'error');
+        }
+      } else {
+        if (!taxesResult) {
+          showToast("Completa todos los pasos antes de guardar", "error");
+          setConfirm({ open: false, loading: false });
+          return;
+        }
+
+        const payload = {
+          recipeId: selectedRecipe._id,
+          recipeName: selectedRecipe.name,
+          servings: Number(selectedRecipe.servings) || 1,
+
+          suggestedPricePerServing:
+            Number(productCostResult?.suggestedPricePerServing) || 0,
+          costPerServing: Number(productCostResult?.costPerServing) || 0,
+          totalCost:
+            Number(ingredientsCostResult?.ingredientsCost || 0) +
+            Number(ingredientsCostResult?.indirectCost || 0),
+          indirectCost: Number(ingredientsCostResult?.indirectCost) || 0,
+          ingredientsCost: Number(ingredientsCostResult?.ingredientsCost) || 0,
+
+          selectedIngredients: ingredients.map((i) => ({
+            ingredientName: i.ingredientName,
+            productId: i.productId,
+            quantity: i.selectedQuantity,
+            unit: i.selectedUnit,
+          })),
+
+          margin: Number(margin),
+          ivaPercent: Number(ivaPercent),
+          servicePercent: Number(servicePercent),
+
+          taxes: taxesResult?.taxes || null,
+          finalPrice: taxesResult?.finalPrice || null,
+        };
+
+        await costAnalysisService.create(payload);
+
+        showToast("Análisis creado correctamente", "success");
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error al guardar análisis:", error);
       showToast("Error al guardar análisis", "error");
@@ -167,7 +292,6 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   const showToast = (message, type = "success") =>
     setToast({ id: Date.now(), message, type });
 
-  /* ================= UI ================= */
   return (
     <div className="min-h-screen p-8 bg-[#f5f2eb]">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg border">
@@ -219,9 +343,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                   <h3 className="text-lg font-semibold mb-4">Ingredientes</h3>
                   {ingredients.map((i, idx) => (
                     <div key={idx} className="grid grid-cols-3 gap-3 mt-3">
-                      <input 
-                        value={i.ingredientName} 
-                        readOnly 
+                      <input
+                        value={i.ingredientName}
+                        readOnly
                         className="border p-2 rounded bg-gray-50"
                       />
                       <input
@@ -234,9 +358,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                         }}
                         className="border p-2 rounded"
                       />
-                      <input 
-                        value={i.selectedUnit} 
-                        readOnly 
+                      <input
+                        value={i.selectedUnit}
+                        readOnly
                         className="border p-2 rounded bg-gray-50"
                       />
                     </div>
@@ -244,8 +368,10 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
 
                   {/* Parámetros de cálculo */}
                   <div className="mt-6 space-y-4 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="text-lg font-semibold">Parámetros del Análisis</h3>
-                    
+                    <h3 className="text-lg font-semibold">
+                      Parámetros del Análisis
+                    </h3>
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Margen (%)
@@ -314,8 +440,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                   </div>
 
                   <p className="text-sm text-gray-600 mt-3 text-center">
-                    <strong>Recomendado:</strong> "Calcular y Guardar" crea el análisis directamente. 
-                    Usa "Ver Cálculos" solo si necesitas revisar cada paso.
+                    <strong>Recomendado:</strong> "Calcular y Guardar" crea el
+                    análisis directamente. Usa "Ver Cálculos" solo si necesitas
+                    revisar cada paso.
                   </p>
                 </>
               )}
@@ -371,14 +498,21 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                   <div className="mt-4 space-y-3">
                     <div className="p-4 bg-[#f5f2eb] rounded-lg">
                       <p className="text-gray-700">
-                        <span className="font-semibold">IVA ({taxesResult.taxes.ivaPercent}%):</span> $
-                        {(Number(taxesResult.taxes.ivaAmount) || 0).toFixed(2)}
+                        <span className="font-semibold">
+                          IVA ({taxesResult.taxes.ivaPercent}%):
+                        </span>{" "}
+                        ${(Number(taxesResult.taxes.ivaAmount) || 0).toFixed(2)}
                       </p>
                     </div>
                     <div className="p-4 bg-[#f5f2eb] rounded-lg">
                       <p className="text-gray-700">
-                        <span className="font-semibold">Servicio ({taxesResult.taxes.servicePercent}%):</span> $
-                        {(Number(taxesResult.taxes.serviceAmount) || 0).toFixed(2)}
+                        <span className="font-semibold">
+                          Servicio ({taxesResult.taxes.servicePercent}%):
+                        </span>{" "}
+                        $
+                        {(Number(taxesResult.taxes.serviceAmount) || 0).toFixed(
+                          2,
+                        )}
                       </p>
                     </div>
                   </div>
@@ -411,7 +545,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                 </>
               )}
             </>
-          )}  
+          )}
         </div>
 
         <ConfirmationModal

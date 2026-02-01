@@ -1,4 +1,4 @@
-import { axiosBusinessInstance } from './api';
+import { axiosInstance,axiosBusinessInstance } from './api';
 
 const unitConversionService = {
 
@@ -15,7 +15,7 @@ const unitConversionService = {
   },
 
   getAllUnits: async () => {
-    return await axiosBusinessInstance.get('/unitsall');
+    return await axiosInstance.get('/units/all');
   },
 
   delete: async (id) => {

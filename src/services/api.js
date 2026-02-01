@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_CRUD_URL = import.meta.env.VITE_API_CRUD_URL || '/api/crud';
-const API_BUSINESS_URL = import.meta.env.VITE_API_BUSINESS_URL || '/api/business';
+const API_CRUD_URL = import.meta.env.VITE_API_CRUD_URL;
+const API_BUSINESS_URL = import.meta.env.VITE_API_BUSINESS_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_CRUD_URL,
@@ -25,16 +25,19 @@ const requestInterceptor = (config) => {
   return config;
 };
 
-const requestErrorInterceptor = (error) => {
-  return Promise.reject(error);
-};
+const requestErrorInterceptor = (error) => Promise.reject(error);
 
-axiosInstance.interceptors.request.use(requestInterceptor, requestErrorInterceptor);
-axiosBusinessInstance.interceptors.request.use(requestInterceptor, requestErrorInterceptor);
+axiosInstance.interceptors.request.use(
+  requestInterceptor,
+  requestErrorInterceptor
+);
 
-const responseSuccessInterceptor = (response) => {
-  return response.data;
-};
+axiosBusinessInstance.interceptors.request.use(
+  requestInterceptor,
+  requestErrorInterceptor
+);
+
+const responseSuccessInterceptor = (response) => response.data;
 
 const responseErrorInterceptor = (error) => {
   if (error.response) {
@@ -47,23 +50,32 @@ const responseErrorInterceptor = (error) => {
     }
 
     if (status === 403) {
-      console.error('Access forbidden:', data.message);
+      console.error('Access forbidden:', data && data.message ? data.message : data);
     }
+
+    let responseData = {};
+    if (data && typeof data === 'object') {
+      responseData = data;
+    } else {
+      responseData = { raw: data };
+    }
+
+    const message = (responseData && responseData.message) ? responseData.message : (typeof data === 'string' ? data : 'An error occurred');
 
     return Promise.reject({
       status,
-      message: data.message || 'An error occurred',
-      ...data,
-    });
-  } else if (error.request) {
-    return Promise.reject({
-      message: 'No response from server',
-    });
-  } else {
-    return Promise.reject({
-      message: error.message || 'Request error',
+      message,
+      ...responseData,
     });
   }
+
+  if (error.request) {
+    return Promise.reject({ message: 'No response from server' });
+  }
+
+  return Promise.reject({
+    message: error.message || 'Request error',
+  });
 };
 
 axiosInstance.interceptors.response.use(
@@ -78,19 +90,22 @@ axiosBusinessInstance.interceptors.response.use(
 
 const api = {
   auth: {
-    login: async (email, password) => {
-      return await axiosBusinessInstance.post('/auth/login', { email, password });
-    },
-    register: async (email, password, name) => {
-      return await axiosBusinessInstance.post('/auth/register', { email, password, name });
-    },
+    login: (email, password) =>
+      axiosBusinessInstance.post('/auth/login', { email, password }),
+
+    register: (email, password, name) =>
+      axiosBusinessInstance.post('/auth/register', {
+        email,
+        password,
+        name,
+      }),
+
     googleAuth: () => {
       window.location.href = `${API_BUSINESS_URL}/auth/google`;
     },
-    verify: async () => {
-      return await axiosBusinessInstance.get('/auth/verify');
-    },
-  }
+
+    verify: () => axiosBusinessInstance.get('/auth/verify'),
+  },
 };
 
 export { axiosInstance, axiosBusinessInstance };

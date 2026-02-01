@@ -22,6 +22,13 @@ const costAnalysisService = {
     );
   },
 
+  calculateCompleteCostAnalysis: async (payload) => {
+    return await axiosBusinessInstance.post(
+      "/costanalysis/calculate/complete",
+      payload
+    );
+  },
+
   getIngredientsOptions: async (recipeId) => {
     return await axiosInstance.get(
       `/costanalysis/recipe/${encodeURIComponent(recipeId)}/ingredients-options`

@@ -4,20 +4,28 @@ const recipeService = {
   getAll: async () => {
     return await axiosInstance.get("/recipes");
   },
-  
+
   getById: async (id) => {
     return await axiosInstance.get(`/recipes/${encodeURIComponent(id)}`);
   },
-  
+
   create: async (data) => {
-    return await axiosInstance.post("/recipe", data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    return await axiosInstance.post('/recipes', data);
   },
+
+  createWithCosts: async (data) => {
+    const recipe = await axiosInstance.post('/recipes', data);
+    const recipeId = recipe._id;
+
+    return await axiosBusinessInstance.post(
+      `/recipe/${encodeURIComponent(recipeId)}/calculate-costs`
+    );
+  },
+
 
   update: async (id, data) => {
     return await axiosInstance.put(
-      `/recipes/${encodeURIComponent(id)}`,
+      `/recipe/${encodeURIComponent(id)}`,
       data
     );
   },
@@ -27,7 +35,7 @@ const recipeService = {
       `/recipe/${encodeURIComponent(id)}`
     );
   },
-  
+
   forceDelete: async (id) => {
     return await axiosInstance.delete(
       `/recipe/${encodeURIComponent(id)}/force`
@@ -45,7 +53,7 @@ const recipeService = {
       `/recipes/category/${encodeURIComponent(category)}`
     );
   },
-  
+
   getByName: async (name) => {
     return await axiosBusinessInstance.get(
       `/recipes/name/${encodeURIComponent(name)}`
@@ -66,7 +74,7 @@ const recipeService = {
 
   scale: async (id, data) => {
     return await axiosBusinessInstance.post(
-      `/recipe/${encodeURIComponent(id)}/scale`,
+      `/recipes/${encodeURIComponent(id)}/scale`,
       data
     );
   },

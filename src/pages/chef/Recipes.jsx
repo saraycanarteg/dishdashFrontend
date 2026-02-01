@@ -50,7 +50,7 @@ const Recipes = () => {
   const loadRecipes = async () => {
     try {
       setLoading(true);
-      const data = await api.recipes.getAll();
+      const data = await recipeService.getAll();
       setRecipes(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
@@ -66,14 +66,39 @@ const Recipes = () => {
         await recipeService.update(editing._id, formData);
         showToast("Receta actualizada");
       } else {
-        await recipeService.create(formData);
+        const created = await recipeService.create(formData);
+
+        try {
+          if (created && created._id) {
+            const calcRes = await recipeService.calculateCosts(created._id);
+
+            const updatePayload = {};
+            if (calcRes && typeof calcRes === 'object') {
+              if (calcRes.costPerServing !== undefined) updatePayload.costPerServing = calcRes.costPerServing;
+              if (calcRes.pricePerServing !== undefined) updatePayload.pricePerServing = calcRes.pricePerServing;
+            }
+
+            if (Object.keys(updatePayload).length > 0) {
+              try {
+                await recipeService.update(created._id, updatePayload);
+              } catch (updateErr) {
+                console.error('Error actualizando receta con costos:', updateErr);
+              }
+            }
+          }
+        } catch (calcErr) {
+          console.error('Error calculando costos:', calcErr);
+          showToast(calcErr && calcErr.message ? calcErr.message : 'Receta creada pero error calculando costos', 'error');
+        }
+
         showToast("Receta creada");
       }
       setModalOpen(false);
       setEditing(null);
       loadRecipes();
     } catch (err) {
-      showToast("Error al guardar receta", "error");
+      console.error(err);
+      showToast(err && err.message ? err.message : "Error al guardar receta", "error");
     }
   };
 
@@ -91,7 +116,6 @@ const Recipes = () => {
     setToast({ id: Date.now(), message, type });
   };
 
-  // Función para exportar recetas a CSV
   const exportToCSV = () => {
     const recipesToExport = filtered;
 
@@ -148,7 +172,6 @@ const Recipes = () => {
         onNew={() => setModalOpen(true)}
       />
 
-      
 
       {/* Filtro adicional y botón exportar */}
       <div className="mb-4 flex gap-4 items-center">
