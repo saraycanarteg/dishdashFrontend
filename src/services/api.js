@@ -5,9 +5,6 @@ const API_BUSINESS_URL = import.meta.env.VITE_API_BUSINESS_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_CRUD_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 const axiosBusinessInstance = axios.create({
