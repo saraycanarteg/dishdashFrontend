@@ -67,14 +67,15 @@ const Dashboard = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Cambiado a false por defecto
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Abierto por defecto en desktop
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (!mobile && !sidebarOpen) {
+      // En desktop, siempre debe estar abierto
+      if (!mobile) {
         setSidebarOpen(true);
       }
     };
@@ -82,9 +83,10 @@ const Dashboard = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
+    // Solo cerrar el sidebar en móvil cuando cambias de ruta
     if (isMobile) {
       setSidebarOpen(false);
     }
@@ -113,7 +115,7 @@ const Dashboard = () => {
       <aside 
         className={`
           ${isMobile ? 'fixed inset-y-0 left-0 z-50' : 'relative'}
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isMobile && !sidebarOpen ? '-translate-x-full' : 'translate-x-0'}
           ${isMobile ? 'w-64' : (sidebarOpen ? 'w-64' : 'w-20')}
           transition-all duration-300 flex flex-col border-r bg-white
         `}
@@ -131,10 +133,10 @@ const Dashboard = () => {
           )}
           {!isMobile && (
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-md hover:bg-gray-100 ml-auto">
-              {sidebarOpen ? <Menu size={18} /> : <Menu size={18} />}
+              <Menu size={18} />
             </button>
           )}
-          {isMobile && sidebarOpen && (
+          {isMobile && (
             <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-md hover:bg-gray-100 ml-auto">
               <X size={18} />
             </button>
