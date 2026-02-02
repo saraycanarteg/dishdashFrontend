@@ -18,6 +18,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
 
   const [ingredients, setIngredients] = useState([]);
   const [ingredientCosts, setIngredientCosts] = useState({});
+  const [ingredientOptions, setIngredientOptions] = useState({}); // Opciones disponibles por ingrediente
   const [toast, setToast] = useState(null);
   const [confirm, setConfirm] = useState({ open: false, loading: false });
 
@@ -47,8 +48,43 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   useEffect(() => {
     if (ingredients.length > 0) {
       loadIngredientCosts();
+      loadIngredientOptions();
     }
   }, [ingredients]);
+
+  const loadIngredientOptions = async () => {
+    try {
+      const options = {};
+      for (const ing of ingredients) {
+        if (ing.ingredientName) {
+          try {
+            const response = await ingredientService.getByName(ing.ingredientName);
+            const items = Array.isArray(response) ? response : (response.data || []);
+            
+            // Filtrar solo ingredientes activos
+            const activeItems = items.filter(item => item.isActive !== false);
+            
+            if (activeItems.length > 0) {
+              options[ing.ingredientName] = activeItems.map(item => ({
+                productId: item.productId,
+                name: item.name,
+                product: item.product,
+                brand: item.brand,
+                price: item.price,
+                size: item.size,
+                sizeUnit: item.sizeUnit,
+              }));
+            }
+          } catch (error) {
+            console.error(`Error loading options for ${ing.ingredientName}:`, error);
+          }
+        }
+      }
+      setIngredientOptions(options);
+    } catch (error) {
+      console.error("Error loading ingredient options:", error);
+    }
+  };
 
   const loadIngredientCosts = async () => {
     setLoadingCosts(true);
@@ -59,7 +95,8 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
           try {
             const response = await ingredientService.getByProductId(ing.productId);
             const ingredient = response.data || response;
-
+            
+            // El campo en BD es 'price', no 'unitCost'
             if (ingredient && ingredient.price) {
               costs[ing.productId] = {
                 unitCost: Number(ingredient.price),
@@ -78,6 +115,32 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
       console.error("Error loading ingredient costs:", error);
     } finally {
       setLoadingCosts(false);
+    }
+  };
+
+  const handleProductChange = async (index, newProductId) => {
+    const copy = [...ingredients];
+    copy[index].productId = newProductId;
+    setIngredients(copy);
+
+    // Cargar el costo del nuevo producto seleccionado
+    try {
+      const response = await ingredientService.getByProductId(newProductId);
+      const ingredient = response.data || response;
+      
+      if (ingredient && ingredient.price) {
+        setIngredientCosts(prev => ({
+          ...prev,
+          [newProductId]: {
+            unitCost: Number(ingredient.price),
+            unit: ingredient.sizeUnit || copy[index].selectedUnit,
+            size: ingredient.size || 1,
+            productName: ingredient.product || ingredient.name,
+          }
+        }));
+      }
+    } catch (error) {
+      console.error(`Error loading cost for new product:`, error);
     }
   };
 
@@ -457,7 +520,10 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                              Nombre
+                              Ingrediente
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                              Producto
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                               Cantidad
@@ -480,11 +546,31 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                               ? costInfo.unitCost / costInfo.size 
                               : 0;
                             const totalCost = calculateIngredientTotal(ing);
+                            const options = ingredientOptions[ing.ingredientName] || [];
 
                             return (
                               <tr key={idx} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                   {ing.ingredientName}
+                                </td>
+                                <td className="px-4 py-3">
+                                  {options.length > 1 ? (
+                                    <select
+                                      value={ing.productId}
+                                      onChange={(e) => handleProductChange(idx, e.target.value)}
+                                      className="w-full border border-gray-300 px-3 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#adc4bc]"
+                                    >
+                                      {options.map((opt) => (
+                                        <option key={opt.productId} value={opt.productId}>
+                                          {opt.brand} - {opt.product} ({opt.size}{opt.sizeUnit}) - ${opt.price?.toFixed(2)}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  ) : (
+                                    <div className="text-sm text-gray-700">
+                                      {costInfo?.productName || 'Sin opciones'}
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="px-4 py-3">
                                   <input
@@ -513,7 +599,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                             );
                           })}
                           <tr className="bg-gray-50 font-semibold">
-                            <td colSpan="4" className="px-4 py-3 text-right text-sm">
+                            <td colSpan="5" className="px-4 py-3 text-right text-sm">
                               Total Estimado:
                             </td>
                             <td className="px-4 py-3 text-right text-base text-[#adc4bc]">
@@ -532,12 +618,39 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                           ? costInfo.unitCost / costInfo.size 
                           : 0;
                         const totalCost = calculateIngredientTotal(ing);
+                        const options = ingredientOptions[ing.ingredientName] || [];
 
                         return (
                           <div key={idx} className="border rounded-lg p-3 sm:p-4 space-y-3">
                             <div className="font-medium text-gray-900 text-sm sm:text-base">
                               {ing.ingredientName}
                             </div>
+
+                            {/* Selector de producto */}
+                            {options.length > 1 && (
+                              <div>
+                                <label className="block text-xs text-gray-600 mb-1">
+                                  Producto / Marca
+                                </label>
+                                <select
+                                  value={ing.productId}
+                                  onChange={(e) => handleProductChange(idx, e.target.value)}
+                                  className="w-full border border-gray-300 px-3 py-2 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#adc4bc]"
+                                >
+                                  {options.map((opt) => (
+                                    <option key={opt.productId} value={opt.productId}>
+                                      {opt.brand} - {opt.product} ({opt.size}{opt.sizeUnit}) - ${opt.price?.toFixed(2)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+
+                            {options.length === 1 && (
+                              <div className="text-xs sm:text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-md">
+                                {costInfo?.productName || 'Producto único'}
+                              </div>
+                            )}
 
                             <div className="grid grid-cols-2 gap-3">
                               <div>
