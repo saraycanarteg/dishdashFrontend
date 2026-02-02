@@ -1,8 +1,9 @@
 import React from "react";
+import { formatCurrency, formatNumber } from '../../utils/format';
 
 const API_BASE =
   import.meta.env.VITE_API_CRUD?.replace("/dishdash", "") ||
-  "https://recipemanagement-caj9.onrender.com";
+  "http://recipemanagementcrud.onrender.com/dishdash";
 
 const getImageUrl = (path) => (path ? `${API_BASE}${path}` : "");
 
@@ -43,10 +44,10 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
                   🍽 <strong>{recipe.servings}</strong> porciones
                 </div>
                 <div className="bg-white rounded-lg p-3 shadow-sm">
-                  💲 Precio: <strong>${recipe.pricePerServing}</strong>
+                  💲 Precio: <strong>{formatCurrency(recipe.pricePerServing)}</strong>
                 </div>
                 <div className="bg-white rounded-lg p-3 shadow-sm">
-                  💰 Costo: <strong>${recipe.costPerServing}</strong>
+                  💰 Costo: <strong>{formatCurrency(recipe.costPerServing)}</strong>
                 </div>
               </div>
             </div>
@@ -98,7 +99,7 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
                       {ing.ingredientName || ing.name}
                     </span>
                     <span className="text-gray-600">
-                      {ing.quantity} {ing.unit}
+                      {typeof ing.quantity === 'number' ? formatNumber(ing.quantity) : ing.quantity} {ing.unit}
                     </span>
                   </li>
                 ))}

@@ -83,21 +83,23 @@ const responseErrorInterceptor = (error) => {
       // No forzamos logout/redirect para rutas de auth (ej: login incorrecto)
       try {
         const messageLower = (responseData && responseData.message ? String(responseData.message).toLowerCase() : '');
-        const tokenIssue = /token|jwt|expired|invalid|unauthorized/.test(messageLower);
+        const tokenPresent = !!localStorage.getItem('token');
+        // Consideramos fallo de token sólo si el cliente tiene token local y el mensaje lo indica
+        const tokenIssue = tokenPresent && /token|jwt|expired|invalid|unauthorized/.test(messageLower);
 
         // Si es ruta de auth, no limpiamos token (login fallido, register, etc.)
         if (isAuthRoute) {
           // permitimos que la UI de login maneje el mensaje
         } else if (tokenIssue) {
-          // Si el servidor indica explícitamente que el token es inválido/expiró, eliminamos credenciales y redirigimos
+          // Si el servidor indica explícitamente que el token es inválido/expiró y el cliente tiene token, eliminamos credenciales y redirigimos
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           if (window.location.pathname !== '/login') {
             window.location.href = '/login';
           }
         } else {
-          // No eliminar token por 401 genérico. Logueamos para debug y devolvemos el error.
-          console.warn('401 recibido pero no identificado como fallo de token:', messageLower, 'url:', requestUrl);
+          // 401 genérico (sin token local o sin mensaje claro): no forzamos logout/redirect.
+          console.warn('401 recibido (no token issue detectado). Token presente:', tokenPresent, 'mensaje:', messageLower, 'url:', requestUrl);
         }
       } catch (e) {
         console.error('Error procesando 401:', e);
