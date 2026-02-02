@@ -12,7 +12,8 @@ const ConversionHistoryTable = ({ conversions, onDelete }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* Vista de tabla para desktop */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -69,12 +70,53 @@ const ConversionHistoryTable = ({ conversions, onDelete }) => {
         </table>
       </div>
 
+      {/* Vista de tarjetas para móvil */}
+      <div className="md:hidden divide-y divide-gray-100">
+        {currentItems.map((conv) => (
+          <div key={conv._id} className="p-4 hover:bg-gray-50">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 mb-1">
+                  {new Date(conv.createdAt).toLocaleDateString()}
+                </p>
+                <p className="text-sm font-medium text-gray-900">
+                  {conv.value} {conv.fromUnit} → {conv.result?.toFixed(2)} {conv.toUnit}
+                </p>
+              </div>
+              <button
+                onClick={() => onDelete(conv._id)}
+                className="text-red-600 hover:text-red-800 p-2 -mr-2"
+                title="Eliminar conversión"
+              >
+                <Archive className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="text-gray-500">Ingrediente:</span>
+                <p className="text-gray-700 font-medium">
+                  {conv.ingredientName || '-'}
+                </p>
+              </div>
+              <div>
+                <span className="text-gray-500">Densidad:</span>
+                <p className="text-gray-700 font-medium">
+                  {conv.densityUsed}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Paginación */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 p-4 border-t">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-2 p-4 border-t">
           <button
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1 bg-gray-100 rounded disabled:opacity-50 hover:bg-gray-200"
+            className="w-full sm:w-auto px-4 py-2 bg-gray-100 rounded disabled:opacity-50 hover:bg-gray-200 text-sm"
           >
             Anterior
           </button>
@@ -84,7 +126,7 @@ const ConversionHistoryTable = ({ conversions, onDelete }) => {
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 bg-gray-100 rounded disabled:opacity-50 hover:bg-gray-200"
+            className="w-full sm:w-auto px-4 py-2 bg-gray-100 rounded disabled:opacity-50 hover:bg-gray-200 text-sm"
           >
             Siguiente
           </button>

@@ -64,32 +64,36 @@ export default function UnitConversion() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">Cargando...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-gray-500 text-sm md:text-base">Cargando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Encabezado */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 md:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Convertidor de Unidades</h1>
-            <p className="text-gray-600 mt-2">Convierte entre diferentes unidades de medida</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+              Convertidor de Unidades
+            </h1>
+            <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">
+              Convierte entre diferentes unidades de medida
+            </p>
           </div>
           <button
             onClick={() => navigate('/unit-conversion/history')}
-            className="px-4 py-2 bg-[#9FB9B3] text-white rounded-lg hover:bg-[#8FA3A0] flex items-center gap-2 transition"
+            className="w-full sm:w-auto px-4 py-2 bg-[#9FB9B3] text-white rounded-lg hover:bg-[#8FA3A0] flex items-center justify-center gap-2 transition text-sm md:text-base"
           >
-            <History className="w-5 h-5" />
-            Ver Historial
+            <History className="w-4 h-4 md:w-5 md:h-5" />
+            <span>Ver Historial</span>
           </button>
         </div>
 
         {/* Formulario de Conversión */}
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-8">
           <ConversionForm
             ingredients={ingredients}
             units={units}

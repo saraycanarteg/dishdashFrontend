@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Maximize2 } from "lucide-react";
+import { Maximize2, ArrowLeft } from "lucide-react";
 import recipeService from "../../services/recipe";
 import recipeScalingService from "../../services/recipeScaling";
 import RecipeScalingForm from "../../views/recipescaling/RecipeScalingForm";
@@ -107,7 +107,6 @@ export default function RecipeScaling() {
 
     setSaving(true);
     try {
-      // El escalado ya fue guardado por el backend, solo actualizamos la lista
       await loadScaledRecipes();
       showToast({ type: "success", message: "Escalado guardado correctamente" });
       handleBackToList();
@@ -122,7 +121,6 @@ export default function RecipeScaling() {
   const handleDiscardScaling = async () => {
     if (scaledResult && scaledResult._id) {
       try {
-        // Eliminar el escalado temporal que fue creado
         await recipeScalingService.delete(scaledResult._id);
       } catch (error) {
         console.error("Error discarding scaled recipe:", error);
@@ -157,7 +155,6 @@ export default function RecipeScaling() {
   };
 
   const handleBackToList = async () => {
-    // Si hay un resultado sin guardar, eliminarlo
     if (scaledResult && scaledResult._id && lastScalingData) {
       try {
         await recipeScalingService.delete(scaledResult._id);
@@ -176,10 +173,10 @@ export default function RecipeScaling() {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="h-full flex items-center justify-center p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: "#9bb3ac" }}></div>
-          <p className="text-gray-600">Cargando...</p>
+          <p className="text-gray-600 text-sm sm:text-base">Cargando...</p>
         </div>
       </div>
     );
@@ -188,29 +185,31 @@ export default function RecipeScaling() {
   // Vista de nuevo escalado
   if (showNewScaling) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-5xl mx-auto space-y-6">
+      <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
+        <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-                <Maximize2 />
-                Nuevo Escalado
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2 mb-1">
+                <Maximize2 className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+                <span className="truncate">Nuevo Escalado</span>
               </h1>
-              <p className="text-gray-600">
+              <p className="text-xs sm:text-sm md:text-base text-gray-600">
                 Ajusta cantidades, costos y suministros según nuevas porciones
               </p>
             </div>
             <button
               onClick={handleBackToList}
-              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+              className="w-full sm:w-auto px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap"
             >
-              Volver al listado
+              <ArrowLeft size={18} className="flex-shrink-0" />
+              <span className="hidden xs:inline">Volver al listado</span>
+              <span className="xs:hidden">Volver</span>
             </button>
           </div>
 
           {/* Form */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
             <RecipeScalingForm
               recipes={recipes}
               onScale={handleScale}
@@ -220,23 +219,23 @@ export default function RecipeScaling() {
           {/* Results */}
           {scaledResult && (
             <>
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
                 <ScaledIngredientsTable scaledRecipe={scaledResult} />
               </div>
 
               {/* Action Buttons */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex justify-end gap-3">
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row justify-end gap-3">
                   <button
                     onClick={handleDiscardScaling}
-                    className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                    className="w-full sm:w-auto px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={saving}
                   >
                     Descartar
                   </button>
                   <button
                     onClick={handleSaveScaling}
-                    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2"
+                    className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={saving}
                   >
                     {saving ? (
@@ -261,8 +260,7 @@ export default function RecipeScaling() {
 
   // Vista de listado principal
   return (
-    <div className="h-full">
-
+    <div className="h-full p-3 sm:p-4 md:p-0">
       {/* Filters */}
       <ScaledRecipeFilters
         searchTerm={searchTerm}
@@ -272,19 +270,19 @@ export default function RecipeScaling() {
 
       {/* Table or Empty State */}
       {filteredScaledRecipes.length === 0 ? (
-        <div className="bg-white rounded-lg border p-12 text-center">
+        <div className="bg-white rounded-lg border p-6 sm:p-8 md:p-12 text-center">
           <div className="text-gray-400 mb-4">
-            <Maximize2 className="mx-auto h-24 w-24" strokeWidth={1.5} />
+            <Maximize2 className="mx-auto h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24" strokeWidth={1.5} />
           </div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
             No hay escalados de recetas
           </h3>
-          <p className="text-gray-500 mb-6">
+          <p className="text-sm sm:text-base text-gray-500 mb-6">
             Comienza creando tu primer escalado de receta
           </p>
           <button
             onClick={handleNewScaling}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[#9bb3ac] text-white rounded-md hover:bg-[#adc4bc] transition-all font-medium"
+            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-[#9bb3ac] text-white rounded-md hover:bg-[#adc4bc] transition-all font-medium text-sm sm:text-base"
           >
             + Crear Primer Escalado
           </button>
