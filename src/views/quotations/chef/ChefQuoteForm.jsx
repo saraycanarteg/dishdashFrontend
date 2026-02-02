@@ -96,6 +96,14 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
     confirmText: "Aceptar",
   });
 
+  const minEventDate = (() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  })();
+
   useEffect(() => {
     const loadRecipes = async () => {
       setIsLoadingRecipes(true);
@@ -256,6 +264,12 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
     }
     if (!eventInfo.eventDate || !eventInfo.eventTime) {
       showToast("Completa fecha y hora del evento", "error");
+      return false;
+    }
+
+    // Asegurar que la fecha no sea anterior a hoy
+    if (eventInfo.eventDate && eventInfo.eventDate < minEventDate) {
+      showToast('La fecha del evento debe ser desde hoy en adelante', 'error');
       return false;
     }
     if (!calculation) {
@@ -468,13 +482,18 @@ const ChefQuoteForm = ({ onShowHistory, onSaved }) => {
                   description="Cuándo es el evento"
                 >
                   <Input type="date" className="w-full"
+                    min={minEventDate}
                     value={eventInfo.eventDate}
-                    onChange={(e) =>
-                      setEventInfo((prev) => ({
-                        ...prev,
-                        eventDate: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val && val < minEventDate) {
+                        showToast('Selecciona una fecha desde hoy en adelante', 'error');
+                        // forzar a la fecha mínima
+                        setEventInfo((prev) => ({ ...prev, eventDate: minEventDate }));
+                      } else {
+                        setEventInfo((prev) => ({ ...prev, eventDate: val }));
+                      }
+                    }}
                   />
                 </FormField>
                 <FormField 
