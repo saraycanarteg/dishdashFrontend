@@ -44,7 +44,7 @@ const quotationService = {
   },
 
   createClientRequest: async (payload) => {
-    return await axiosPublic.post("/public/quotations/client-request", payload);
+    return await axiosInstance.post("/quotations/client-request", payload);
   },
 
   estimateClientRequest: async (payload) => {
