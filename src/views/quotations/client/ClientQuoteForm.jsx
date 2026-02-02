@@ -57,7 +57,8 @@ const ClientQuoteForm = () => {
     const loadRecipes = async () => {
       setIsLoadingRecipes(true);
       try {
-        const data = await recipeService.getAllRecipes();
+        const response = await recipeService.getAllRecipes();
+        const data = response.data || response;
         setRecipes(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error loading recipes:", error);
