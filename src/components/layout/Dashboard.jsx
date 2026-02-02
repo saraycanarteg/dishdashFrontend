@@ -15,6 +15,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import ServerAlert from '../ServerAlert';
 
 const menuConfig = {
   chef: [
@@ -197,9 +198,11 @@ const Dashboard = () => {
 
       {/* Main */}
       <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Server status alert */}
         
         {/* Header */}
         <header className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b bg-white" style={{ borderColor: '#E8D5C7' }}>
+          <ServerAlert />
           <div className="flex items-center gap-3">
             {/* Botón hamburguesa solo en móvil */}
             {isMobile && (

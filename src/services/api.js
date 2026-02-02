@@ -3,9 +3,12 @@ import axios from 'axios';
 const API_CRUD_URL = import.meta.env.VITE_API_CRUD_URL;
 const API_BUSINESS_URL = import.meta.env.VITE_API_BUSINESS_URL;
 
+import serverStatus from './serverStatus';
+
 const axiosInstance = axios.create({
   baseURL: API_CRUD_URL,
 });
+axiosInstance.serverName = 'crud';
 
 const axiosBusinessInstance = axios.create({
   baseURL: API_BUSINESS_URL,
@@ -13,6 +16,10 @@ const axiosBusinessInstance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+axiosBusinessInstance.serverName = 'business';
+
+// Inicializar los endpoints para las comprobaciones
+serverStatus.initServerStatus(API_CRUD_URL, API_BUSINESS_URL);
 
 const requestInterceptor = (config) => {
   const token = localStorage.getItem('token');
@@ -34,11 +41,30 @@ axiosBusinessInstance.interceptors.request.use(
   requestErrorInterceptor
 );
 
-const responseSuccessInterceptor = (response) => response.data;
+const responseSuccessInterceptor = (response) => {
+  // Si la petición responde, marcamos su servidor como UP
+  try {
+    const server = response?.config?.baseURL === API_BUSINESS_URL ? 'business' : 'crud';
+    serverStatus.setServerStatus(server, true);
+  } catch (e) {
+    // noop
+  }
+  return response.data;
+};
 
 const responseErrorInterceptor = (error) => {
+  // Si hay respuesta del servidor, tratamos el error como siempre
   if (error.response) {
     const { status, data } = error.response;
+
+    // Si status >= 500, lo interpretamos como problema del servidor
+    try {
+      const server = error?.config?.baseURL === API_BUSINESS_URL ? 'business' : 'crud';
+      if (status >= 500) serverStatus.setServerStatus(server, false);
+      else serverStatus.setServerStatus(server, true);
+    } catch (e) {
+      // noop
+    }
 
     if (status === 401) {
       localStorage.removeItem('token');
@@ -66,7 +92,16 @@ const responseErrorInterceptor = (error) => {
     });
   }
 
+  // No hay respuesta: posible caída o red
   if (error.request) {
+    try {
+      const server = error?.config?.baseURL === API_BUSINESS_URL ? 'business' : 'crud';
+      serverStatus.setServerStatus(server, false);
+    } catch (e) {
+      serverStatus.setServerStatus('crud', false);
+      serverStatus.setServerStatus('business', false);
+    }
+
     return Promise.reject({ message: 'No response from server' });
   }
 
