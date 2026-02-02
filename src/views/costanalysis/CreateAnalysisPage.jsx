@@ -59,10 +59,13 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
           try {
             const response = await ingredientService.getByProductId(ing.productId);
             const ingredient = response.data || response;
-            if (ingredient && ingredient.unitCost) {
+
+            if (ingredient && ingredient.price) {
               costs[ing.productId] = {
-                unitCost: Number(ingredient.unitCost),
-                unit: ingredient.unit || ing.selectedUnit,
+                unitCost: Number(ingredient.price),
+                unit: ingredient.sizeUnit || ing.selectedUnit,
+                size: ingredient.size || 1,
+                productName: ingredient.product || ingredient.name,
               };
             }
           } catch (error) {
@@ -81,7 +84,13 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
   const calculateIngredientTotal = (ing) => {
     const costInfo = ingredientCosts[ing.productId];
     if (!costInfo || !costInfo.unitCost) return 0;
-    return Number(ing.selectedQuantity || 0) * costInfo.unitCost;
+    
+    // costInfo.unitCost es el precio total del producto
+    // costInfo.size es el tamaño (ej: 750ml)
+    // Calculamos el precio por unidad base
+    const pricePerUnit = costInfo.unitCost / (costInfo.size || 1);
+    
+    return Number(ing.selectedQuantity || 0) * pricePerUnit;
   };
 
   const calculateTotalCost = () => {
@@ -467,6 +476,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                         <tbody className="divide-y divide-gray-100">
                           {ingredients.map((ing, idx) => {
                             const costInfo = ingredientCosts[ing.productId];
+                            const pricePerUnit = costInfo?.unitCost && costInfo?.size 
+                              ? costInfo.unitCost / costInfo.size 
+                              : 0;
                             const totalCost = calculateIngredientTotal(ing);
 
                             return (
@@ -492,7 +504,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                                   {ing.selectedUnit}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-right text-gray-700">
-                                  ${costInfo?.unitCost?.toFixed(2) || '0.00'}
+                                  ${pricePerUnit.toFixed(4)}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-right font-semibold text-gray-900">
                                   ${totalCost.toFixed(2)}
@@ -516,6 +528,9 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                     <div className="lg:hidden space-y-3">
                       {ingredients.map((ing, idx) => {
                         const costInfo = ingredientCosts[ing.productId];
+                        const pricePerUnit = costInfo?.unitCost && costInfo?.size 
+                          ? costInfo.unitCost / costInfo.size 
+                          : 0;
                         const totalCost = calculateIngredientTotal(ing);
 
                         return (
@@ -557,7 +572,7 @@ const CreateAnalysisPage = ({ onBack, onSuccess }) => {
                               <div>
                                 <div className="text-xs text-gray-600">Costo Unitario</div>
                                 <div className="text-sm font-medium text-gray-900 mt-1">
-                                  ${costInfo?.unitCost?.toFixed(2) || '0.00'}
+                                  ${pricePerUnit.toFixed(4)}
                                 </div>
                               </div>
                               <div className="text-right">
