@@ -1,7 +1,7 @@
 import React from "react";
 
 const API_BASE =
-  import.meta.env.VITE_API_URL?.replace("/dishdash", "") ||
+  import.meta.env.VITE_API_CRUD?.replace("/dishdash", "") ||
   "https://recipemanagement-caj9.onrender.com";
 
 const getImageUrl = (path) => (path ? `${API_BASE}${path}` : "");
