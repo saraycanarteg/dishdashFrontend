@@ -1,4 +1,5 @@
 import { axiosInstance, axiosBusinessInstance } from "./api";
+import axiosPublic from "./apiPublic";
 
 const quotationService = {
   getForCalendar: async () => {
@@ -43,7 +44,7 @@ const quotationService = {
   },
 
   createClientRequest: async (payload) => {
-    return await axiosInstance.post("/quotations/client-request", payload);
+    return await axiosPublic.post("/quotations/client-request", payload);
   },
 
   estimateClientRequest: async (payload) => {
