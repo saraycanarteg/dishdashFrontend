@@ -45,11 +45,20 @@ export const checkServers = async (timeout = 3000) => {
     try {
       const controller = new AbortController();
       const id = setTimeout(() => controller.abort(), timeout);
-      // Intentamos hacer un GET a la raíz. No importa si devuelve 404; si responde está up.
-      const res = await fetch(url, { method: 'GET', signal: controller.signal });
+      
+      // Quitar /dishdash de la URL para hacer ping a la raíz del servidor
+      const baseUrl = url.replace('/dishdash', '');
+      
+      const res = await fetch(baseUrl, { 
+        method: 'GET', 
+        signal: controller.signal 
+      });
       clearTimeout(id);
-      return res && (res.status >= 200 && res.status < 600);
+      
+      // Si el servidor responde (cualquier status code < 600), está UP
+      return res && res.status < 600;
     } catch (err) {
+      // Error de red = servidor DOWN
       return false;
     }
   };

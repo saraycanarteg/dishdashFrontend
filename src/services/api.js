@@ -62,7 +62,7 @@ const responseErrorInterceptor = (error) => {
   if (error.response) {
     const { status, data } = error.response;
 
-    // Ajustar responseData lo antes posible para usarlo en la lógica de 401/403
+    // Ajustar responseData lo antes posible
     let responseData = {};
     if (data && typeof data === 'object') {
       responseData = data;
@@ -70,11 +70,10 @@ const responseErrorInterceptor = (error) => {
       responseData = { raw: data };
     }
 
-    // Si status >= 500, lo interpretamos como problema del servidor
+    // Si el servidor respondió (incluso con error), está UP
     try {
       const server = error?.config?.baseURL === API_BUSINESS_URL ? 'business' : 'crud';
-      if (status >= 500) serverStatus.setServerStatus(server, false);
-      else serverStatus.setServerStatus(server, true);
+      serverStatus.setServerStatus(server, true);
     } catch (e) {
       // noop
     }
@@ -83,23 +82,21 @@ const responseErrorInterceptor = (error) => {
       // No forzamos logout/redirect para rutas de auth (ej: login incorrecto)
       try {
         const messageLower = (responseData && responseData.message ? String(responseData.message).toLowerCase() : '');
-        const tokenPresent = !!localStorage.getItem('token');
-        // Consideramos fallo de token sólo si el cliente tiene token local y el mensaje lo indica
-        const tokenIssue = tokenPresent && /token|jwt|expired|invalid|unauthorized/.test(messageLower);
+        const tokenIssue = /token|jwt|expired|invalid|unauthorized/.test(messageLower);
 
         // Si es ruta de auth, no limpiamos token (login fallido, register, etc.)
         if (isAuthRoute) {
           // permitimos que la UI de login maneje el mensaje
         } else if (tokenIssue) {
-          // Si el servidor indica explícitamente que el token es inválido/expiró y el cliente tiene token, eliminamos credenciales y redirigimos
+          // Si el servidor indica explícitamente que el token es inválido/expiró, eliminamos credenciales y redirigimos
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           if (window.location.pathname !== '/login') {
             window.location.href = '/login';
           }
         } else {
-          // 401 genérico (sin token local o sin mensaje claro): no forzamos logout/redirect.
-          console.warn('401 recibido (no token issue detectado). Token presente:', tokenPresent, 'mensaje:', messageLower, 'url:', requestUrl);
+          // No eliminar token por 401 genérico. Logueamos para debug y devolvemos el error.
+          console.warn('401 recibido pero no identificado como fallo de token:', messageLower, 'url:', requestUrl);
         }
       } catch (e) {
         console.error('Error procesando 401:', e);
@@ -129,7 +126,10 @@ const responseErrorInterceptor = (error) => {
       serverStatus.setServerStatus('business', false);
     }
 
-    return Promise.reject({ message: 'No response from server' });
+    return Promise.reject({ 
+      message: 'No response from server',
+      serverDown: true 
+    });
   }
 
   return Promise.reject({
