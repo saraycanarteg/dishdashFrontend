@@ -241,16 +241,6 @@ const Calendar = () => {
     return currentDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
   };
 
-  const getEventTypeLabel = (type) => {
-    const labels = {
-      wedding: 'Boda',
-      corporate_event: 'Evento Corporativo',
-      birthday_party: 'Fiesta de Cumpleaños',
-      other: 'Otro'
-    };
-    return labels[type] || type;
-  };
-
   const getStatusColor = (status) => {
     const colors = {
       pending: '#FF9800',
