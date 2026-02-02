@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Calendar, 
@@ -67,9 +67,29 @@ const Dashboard = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Cambiado a false por defecto
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Usar el rol del usuario autenticado
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile && !sidebarOpen) {
+        setSidebarOpen(true);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
+
   const userType = user?.role || 'client';
   const currentMenu = menuConfig[userType] || [];
 
@@ -79,33 +99,53 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-white overflow-hidden">
       
+      {/* Overlay para móvil */}
+      {isMobile && sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside 
-        className={`${sidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300 flex flex-col border-r bg-white`}
+        className={`
+          ${isMobile ? 'fixed inset-y-0 left-0 z-50' : 'relative'}
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isMobile ? 'w-64' : (sidebarOpen ? 'w-64' : 'w-20')}
+          transition-all duration-300 flex flex-col border-r bg-white
+        `}
         style={{ borderColor: '#F1F1F1' }}
       >
         {/* Logo + toggle */}
         <div className="flex items-center justify-between px-4 py-4 border-b" style={{ borderColor: '#F1F1F1' }}>
-          {sidebarOpen && (
+          {(sidebarOpen || isMobile) && (
             <h1 className="text-2xl font-semibold" style={{ color: '#D4B5A5', fontFamily: 'Brush Script MT, cursive' }}>
               DishDash
             </h1>
           )}
-          {!sidebarOpen && (
+          {!sidebarOpen && !isMobile && (
             <ChefHat size={22} style={{ color: '#D4B5A5' }} />
           )}
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-md hover:bg-gray-100">
-            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+          {!isMobile && (
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-md hover:bg-gray-100">
+              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          )}
+          {isMobile && (
+            <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-md hover:bg-gray-100">
+              <X size={18} />
+            </button>
+          )}
         </div>
 
         {/* Menu */}
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
           {currentMenu.map((section, i) => (
             <div key={i} className="mb-5">
-              {sidebarOpen && (
+              {(sidebarOpen || isMobile) && (
                 <h3 className="text-xs uppercase font-semibold mb-2 tracking-wide" style={{ color: '#D4B5A5' }}>
                   {section.category}
                 </h3>
@@ -125,7 +165,7 @@ const Dashboard = () => {
                         }}
                       >
                         <Icon size={18} />
-                        {sidebarOpen && <span>{item.label}</span>}
+                        {(sidebarOpen || isMobile) && <span>{item.label}</span>}
                       </button>
                     </li>
                   );
@@ -137,11 +177,11 @@ const Dashboard = () => {
 
         {/* Footer user */}
         <div className="p-4 border-t" style={{ borderColor: '#F1F1F1' }}>
-          <div className={`flex items-center ${sidebarOpen ? 'gap-3' : 'justify-center'}`}>
+          <div className={`flex items-center ${(sidebarOpen || isMobile) ? 'gap-3' : 'justify-center'}`}>
             <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold" style={{ backgroundColor: '#D4B5A5', color: 'white' }}>
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
-            {sidebarOpen && (
+            {(sidebarOpen || isMobile) && (
               <div>
                 <p className="text-sm font-medium" style={{ color: '#6B7280' }}>{user?.name || 'Usuario'}</p>
                 <p className="text-xs" style={{ color: '#9FB9B3' }}>
@@ -154,28 +194,37 @@ const Dashboard = () => {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col overflow-hidden">
         
         {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 border-b bg-white" style={{ borderColor: '#E8D5C7' }}>
-          <div>
-            <h2 className="text-2xl font-bold" style={{ color: '#9FB9B3' }}>
+        <header className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b bg-white" style={{ borderColor: '#E8D5C7' }}>
+          <div className="flex items-center gap-3">
+            {/* Botón hamburguesa solo en móvil */}
+            {isMobile && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-2 rounded-md hover:bg-gray-100"
+              >
+                <Menu size={20} />
+              </button>
+            )}
+            <h2 className="text-lg md:text-2xl font-bold truncate" style={{ color: '#9FB9B3' }}>
               {currentMenu.flatMap(s => s.items).find(m => m.path === location.pathname)?.label || 'Dashboard'}
             </h2>
           </div>
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-md text-white hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-md text-white hover:opacity-90 transition-opacity text-sm md:text-base"
             style={{ backgroundColor: '#D4B5A5' }}
           >
             <LogOut size={16} />
-            Salir
+            <span className="hidden sm:inline">Salir</span>
           </button>
         </header>
 
         {/* Content */}
-        <div className="flex-1 p-6 bg-white overflow-auto">
+        <div className="flex-1 p-4 md:p-6 bg-white overflow-auto">
           <Outlet />
         </div>
       </main>
