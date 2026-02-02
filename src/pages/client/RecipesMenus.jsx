@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import recipeService from "../../services/recipe";
 import Recipe from "../../models/Recipes";
-const API_BASE = import.meta.env.VITE_API_CRUD_URL.replace("/dishdash", "");
+const API_BASE = import.meta.env.VITE_API_CRUD.replace("/dishdash", "");
 const RecipesMenus = () => {
   const [recipes, setRecipes] = useState([]);
   const [filtered, setFiltered] = useState([]);

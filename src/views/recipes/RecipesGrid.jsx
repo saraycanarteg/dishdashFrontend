@@ -2,7 +2,7 @@ import React from "react";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 
 const API_BASE =
-  import.meta.env.VITE_API_URL?.replace("/dishdash", "") ||
+  import.meta.env.VITE_API_CRUD?.replace("/dishdash", "") ||
   "http://localhost:3007";
 
 const getImageUrl = (path) =>
