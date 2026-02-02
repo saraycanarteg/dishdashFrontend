@@ -62,6 +62,14 @@ const responseErrorInterceptor = (error) => {
   if (error.response) {
     const { status, data } = error.response;
 
+    // Ajustar responseData lo antes posible para usarlo en la lógica de 401/403
+    let responseData = {};
+    if (data && typeof data === 'object') {
+      responseData = data;
+    } else {
+      responseData = { raw: data };
+    }
+
     // Si status >= 500, lo interpretamos como problema del servidor
     try {
       const server = error?.config?.baseURL === API_BUSINESS_URL ? 'business' : 'crud';
@@ -97,14 +105,7 @@ const responseErrorInterceptor = (error) => {
     }
 
     if (status === 403) {
-      console.error('Access forbidden:', data && data.message ? data.message : data);
-    }
-
-    let responseData = {};
-    if (data && typeof data === 'object') {
-      responseData = data;
-    } else {
-      responseData = { raw: data };
+      console.error('Access forbidden:', responseData && responseData.message ? responseData.message : responseData);
     }
 
     const message = (responseData && responseData.message) ? responseData.message : (typeof data === 'string' ? data : 'An error occurred');
