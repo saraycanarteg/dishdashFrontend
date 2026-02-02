@@ -73,17 +73,15 @@ const Recipes = () => {
         showToast("Receta actualizada");
       } else {
         const created = await recipeService.create(formData);
-
-        try {
-          if (created?._id) {
-            const calc = await recipeService.calculateCosts(created._id);
-            await recipeService.update(created._id, calc);
-          }
-        } catch (e) {
-          console.warn("Receta creada pero falló el cálculo");
+        
+        // El backend-CRUD ya calcula los costos automáticamente
+        // Si el cálculo falló, el backend lo registra pero la receta se crea igual
+        if (created?.calculationError) {
+          console.warn("Advertencia: Receta creada pero el cálculo de costos falló:", created.calculationError);
+          showToast("Receta creada (sin costos calculados)", "warn");
+        } else {
+          showToast("Receta creada exitosamente");
         }
-
-        showToast("Receta creada");
       }
 
       setModalOpen(false);

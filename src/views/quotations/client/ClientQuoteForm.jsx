@@ -34,6 +34,12 @@ const ClientQuoteForm = () => {
   const [selectedRecipes, setSelectedRecipes] = useState([]);
   const [selectedRecipeOption, setSelectedRecipeOption] = useState(null);
   
+  const [clientInfo, setClientInfo] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
+
   const [eventInfo, setEventInfo] = useState({
     eventType: "wedding",
     numberOfGuests: 0,
@@ -129,7 +135,68 @@ const ClientQuoteForm = () => {
     }
   };
 
+  const handleSubmitRequest = async () => {
+    // Validaciones
+    if (!clientInfo.name || !clientInfo.email || !clientInfo.phone) {
+      showToast("Por favor completa tu información de contacto", "error");
+      return;
+    }
+
+    if (!eventInfo.numberOfGuests || Number(eventInfo.numberOfGuests) <= 0) {
+      showToast("Ingresa el número de invitados", "error");
+      return;
+    }
+
+    if (!eventInfo.eventDate || !eventInfo.eventTime) {
+      showToast("Ingresa la fecha y hora del evento", "error");
+      return;
+    }
+
+    if (!eventInfo.location.address) {
+      showToast("Ingresa la dirección del evento", "error");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const payload = {
+        clientInfo: {
+          name: clientInfo.name,
+          email: clientInfo.email,
+          phone: clientInfo.phone,
+        },
+        eventInfo: {
+          ...eventInfo,
+          numberOfGuests: Number(eventInfo.numberOfGuests),
+        },
+        budgetRange: {
+          min: Number(budgetRange.min) || 0,
+          max: Number(budgetRange.max) || 0,
+        },
+        estimatedCost: estimate || 0,
+      };
+
+      await quotationService.createClientRequest(payload);
+      showToast("Solicitud enviada exitosamente. El chef te contactará pronto.", "success");
+      
+      // Limpiar formulario después de enviar
+      setTimeout(() => {
+        handleClear();
+      }, 2000);
+    } catch (error) {
+      console.error("Error submitting request:", error);
+      showToast(error?.message || "Error al enviar la solicitud", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleClear = () => {
+    setClientInfo({
+      name: "",
+      email: "",
+      phone: "",
+    });
     setEventInfo({
       eventType: "wedding",
       numberOfGuests: 0,
@@ -161,6 +228,60 @@ const ClientQuoteForm = () => {
         </div>
 
         <div className="space-y-6">
+          {/* Información de contacto */}
+          <section className="bg-white border rounded-lg p-6 shadow-sm" style={{ borderColor: "#e5dfd8" }}>
+            <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
+              Tu información de contacto
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField 
+                label="Nombre completo *" 
+                description="¿Cómo te llamas?"
+              >
+                <input
+                  type="text"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
+                  placeholder="Ej: Juan Pérez"
+                  value={clientInfo.name}
+                  onChange={(e) =>
+                    setClientInfo((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                />
+              </FormField>
+              <FormField 
+                label="Correo electrónico *" 
+                description="Tu email"
+              >
+                <input
+                  type="email"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
+                  placeholder="Ej: juan@email.com"
+                  value={clientInfo.email}
+                  onChange={(e) =>
+                    setClientInfo((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                />
+              </FormField>
+              <FormField 
+                label="Teléfono *" 
+                description="Para contactarte"
+              >
+                <input
+                  type="tel"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-[#adc4bc] focus:border-transparent outline-none transition"
+                  style={{ borderColor: "#e5dfd8" }}
+                  placeholder="Ej: +57 300 123 4567"
+                  value={clientInfo.phone}
+                  onChange={(e) =>
+                    setClientInfo((prev) => ({ ...prev, phone: e.target.value }))
+                  }
+                />
+              </FormField>
+            </div>
+          </section>
+
           {/* Información del evento */}
           <section className="bg-white border rounded-lg p-6 shadow-sm" style={{ borderColor: "#e5dfd8" }}>
             <h2 className="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b" style={{ borderColor: "#e5dfd8" }}>
@@ -481,6 +602,13 @@ const ClientQuoteForm = () => {
 
           {/* Acciones */}
           <div className="flex flex-wrap gap-3 pt-2">
+            <button
+              onClick={handleSubmitRequest}
+              disabled={isLoading}
+              className="bg-[#2f6f5c] hover:bg-[#26564a] text-white font-semibold px-6 py-2.5 rounded-md shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Enviando..." : "📨 Enviar solicitud de cotización"}
+            </button>
             <button
               onClick={handleEstimate}
               disabled={isLoading}
