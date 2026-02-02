@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import Toast from "../../../components/ui/Toast";
 import quotationService from "../../../services/quotation";
+import calendarService from "../../../services/calendar";
 import ChefQuoteDetailsModal from "./ChefQuoteDetailsModal";
 import { useAuth } from "../../../context/AuthContext";
 import Quotation from "../../../models/Quotation";
@@ -38,6 +39,16 @@ const formatDate = (value) => {
   });
 };
 
+const getQuotationTypeLabel = (type) => {
+  return type === 'client_request' ? 'Solicitud Cliente' : 'Cotización Chef';
+};
+
+const getQuotationTypeStyle = (type) => {
+  return type === 'client_request' 
+    ? { bg: '#E3F2FD', text: '#1976D2' } 
+    : { bg: '#F3E5F5', text: '#7B1FA2' };
+};
+
 const ChefQuoteHistory = ({ onBack, refreshKey = 0 }) => {
   const { user } = useAuth();
   const [quotes, setQuotes] = useState([]);
@@ -56,13 +67,19 @@ const ChefQuoteHistory = ({ onBack, refreshKey = 0 }) => {
   const loadQuotes = async () => {
     setIsLoading(true);
     try {
-      const data = await quotationService.getAll({ quotationType: "chef_quotation" });
+      // Cargar TODAS las cotizaciones (chef y cliente)
+      const data = await quotationService.getAll();
       const modeled = Quotation.fromJSONArray(Array.isArray(data) ? data : []);
+      // Filtrar solo las del chef actual o las solicitudes de cliente aprobadas
       const chefId = user?._id || user?.id;
-      const filteredByChef = chefId
-        ? modeled.filter((q) => q.chefId === chefId)
-        : modeled;
-      setQuotes(filteredByChef);
+      const filtered = modeled.filter((q) => {
+        // Incluir cotizaciones del chef
+        if (q.chefId === chefId) return true;
+        // Incluir solicitudes de cliente (sin chef asignado)
+        if (q.quotationType === 'client_request') return true;
+        return false;
+      });
+      setQuotes(filtered);
     } catch (error) {
       console.error("Error loading quotes:", error);
       showToast("No se pudo cargar el historial", "error");
@@ -120,14 +137,26 @@ const runConfirmedAction = async () => {
   setConfirm((prev) => ({ ...prev, loading: true }));
   try {
     if (action === "delete") {
+      // Primero intentar eliminar el evento del calendario asociado
+      try {
+        const events = await calendarService.getByQuotation(payload._id);
+        if (events && events.length > 0) {
+          await calendarService.delete(events[0]._id);
+        }
+      } catch (eventError) {
+        console.warn('No se pudo eliminar el evento del calendario:', eventError);
+        // Continuar con la eliminación de la cotización aunque falle el evento
+      }
+      
+      // Luego eliminar la cotización
       await quotationService.remove(payload._id);
       setQuotes((prev) => prev.filter((q) => q._id !== payload._id));
-      showToast("Cotización eliminada", "success");
+      showToast("Cotización y evento eliminados", "success");
     }
     if (action === "approve") {
-      await quotationService.updateStatus(payload._id, "approved");
-      setQuotes((prev) => prev.map((q) => (q._id === payload._id ? new Quotation({ ...q, status: "approved" }) : q)));
-      showToast("Cotización aprobada y agendada", "success");
+      await quotationService.approveAndSchedule(payload._id);
+      await loadQuotes(); // Recargar para actualizar el estado
+      showToast("Cotización aprobada y evento programado", "success");
     }
   } catch (error) {
     console.error("Error on action:", error);
@@ -209,12 +238,23 @@ const runConfirmedAction = async () => {
                         </h3>
                         <p className="text-xs text-gray-500">{quote.clientInfo?.email}</p>
                       </div>
-                      <span
-                        className="px-2.5 py-1 rounded-full text-xs font-medium"
-                        style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}
-                      >
-                        {STATUS_OPTIONS.find((s) => s.value === quote.status)?.label || quote.status}
-                      </span>
+                      <div className="flex flex-col gap-1 items-end">
+                        <span
+                          className="px-2.5 py-1 rounded-full text-xs font-medium"
+                          style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}
+                        >
+                          {STATUS_OPTIONS.find((s) => s.value === quote.status)?.label || quote.status}
+                        </span>
+                        <span
+                          className="px-2.5 py-1 rounded-full text-xs font-medium"
+                          style={{ 
+                            backgroundColor: getQuotationTypeStyle(quote.quotationType).bg, 
+                            color: getQuotationTypeStyle(quote.quotationType).text 
+                          }}
+                        >
+                          {getQuotationTypeLabel(quote.quotationType)}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="mt-3 grid grid-cols-1 gap-2 text-sm text-gray-600">
@@ -291,6 +331,7 @@ const runConfirmedAction = async () => {
                       <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Cliente</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Evento</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Fecha</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Origen</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Estado</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Total</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Acciones</th>
@@ -317,6 +358,17 @@ const runConfirmedAction = async () => {
                           </td>
                           <td className="px-4 py-3 text-gray-600">
                             {formatDate(quote.eventInfo?.eventDate)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className="px-2.5 py-1 rounded-full text-xs font-medium inline-block"
+                              style={{ 
+                                backgroundColor: getQuotationTypeStyle(quote.quotationType).bg, 
+                                color: getQuotationTypeStyle(quote.quotationType).text 
+                              }}
+                            >
+                              {getQuotationTypeLabel(quote.quotationType)}
+                            </span>
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
