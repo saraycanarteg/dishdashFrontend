@@ -36,6 +36,7 @@ const Calendar = () => {
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedQuotation, setSelectedQuotation] = useState(null);
+  const [selectedDayQuotations, setSelectedDayQuotations] = useState([]);
   const [toast, setToast] = useState(null);
   const [confirm, setConfirm] = useState({ open: false, action: null, payload: null, loading: false });
 
@@ -180,6 +181,8 @@ const Calendar = () => {
       confirmUnlink();
     } else if (action === 'sync') {
       handleSyncWithGoogle(confirm.payload);
+    } else if (action === 'delete') {
+      handleDeleteEvent(confirm.payload);
     } else if (action === 'accept' || action === 'reject') {
       confirmAction();
     }
@@ -277,6 +280,28 @@ const Calendar = () => {
     } catch (error) {
       console.error('Error syncing with Google:', error);
       showToast(error.message || 'Error al sincronizar con Google Calendar', 'error');
+      setConfirm(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleDeleteEvent = async (quotationId) => {
+    try {
+      setConfirm(prev => ({ ...prev, loading: true }));
+      // Buscar el evento asociado a esta cotización
+      const events = await calendarService.getByQuotation(quotationId);
+      if (events && events.length > 0) {
+        await calendarService.delete(events[0]._id);
+        showToast('Evento eliminado exitosamente', 'success');
+        setSelectedQuotation(null);
+        setSelectedDayQuotations([]);
+        loadQuotations();
+      } else {
+        showToast('No se encontró evento para esta cotización', 'error');
+      }
+      setConfirm({ open: false, action: null, payload: null, loading: false });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      showToast(error.message || 'Error al eliminar evento', 'error');
       setConfirm(prev => ({ ...prev, loading: false }));
     }
   };
@@ -571,7 +596,17 @@ const Calendar = () => {
                     borderColor: isToday ? '#9FB9B3' : '#E8D5C7',
                     backgroundColor: quotationsOnDay.length > 0 ? '#F8F9FA' : '#ffffff'
                   }}
-                  onClick={() => quotationsOnDay.length > 0 && setSelectedQuotation(quotationsOnDay[0])}
+                  onClick={() => {
+                    if (quotationsOnDay.length > 0) {
+                      if (quotationsOnDay.length === 1) {
+                        setSelectedQuotation(quotationsOnDay[0]);
+                        setSelectedDayQuotations([]);
+                      } else {
+                        setSelectedDayQuotations(quotationsOnDay);
+                        setSelectedQuotation(null);
+                      }
+                    }
+                  }}
                 >
                   <div className={`text-sm font-semibold mb-1 ${isToday ? 'font-bold' : ''}`} style={{ color: '#9FB9B3' }}>
                     {day}
@@ -604,6 +639,69 @@ const Calendar = () => {
           </div>
         </div>
       </div>
+
+      {/* Multiple Events Modal */}
+      {selectedDayQuotations.length > 0 && (
+        <Modal isOpen={selectedDayQuotations.length > 0} onClose={() => setSelectedDayQuotations([])}>
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold" style={{ color: '#9FB9B3' }}>
+              Eventos del Día ({selectedDayQuotations.length})
+            </h2>
+            <p className="text-sm" style={{ color: '#B8C9D0' }}>
+              Selecciona un evento para ver más detalles
+            </p>
+            
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {selectedDayQuotations.map((quotation) => (
+                <div
+                  key={quotation._id}
+                  className="border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md"
+                  style={{ borderColor: '#E8D5C7' }}
+                  onClick={() => {
+                    setSelectedQuotation(quotation);
+                    setSelectedDayQuotations([]);
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold" style={{ color: '#9FB9B3' }}>
+                      {quotation.clientInfo.name}
+                    </h3>
+                    <div
+                      className="px-2 py-1 rounded-full text-xs font-semibold"
+                      style={{
+                        backgroundColor: getStatusColor(quotation.status) + '20',
+                        color: getStatusColor(quotation.status)
+                      }}
+                    >
+                      {getStatusLabel(quotation.status)}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm" style={{ color: '#666' }}>
+                    <div className="flex items-center gap-1">
+                      <Clock size={14} style={{ color: '#9FB9B3' }} />
+                      {quotation.eventInfo.eventTime}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users size={14} style={{ color: '#9FB9B3' }} />
+                      {quotation.eventInfo.numberOfGuests} invitados
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <CalendarIcon size={14} style={{ color: '#9FB9B3' }} />
+                      {getEventTypeLabel(quotation.eventInfo.eventType)}
+                    </div>
+                    {quotation.totalAmount && (
+                      <div className="flex items-center gap-1">
+                        <DollarSign size={14} style={{ color: '#9FB9B3' }} />
+                        ${quotation.totalAmount.toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Quotation Detail Modal */}
       {selectedQuotation && (
@@ -693,8 +791,8 @@ const Calendar = () => {
             )}
 
             {/* Actions */}
-            {googleStatus.isLinked && selectedQuotation.status === 'approved' && (
-              <div className="flex gap-2 pt-4 border-t">
+            <div className="flex gap-2 pt-4 border-t">
+              {googleStatus.isLinked && selectedQuotation.status === 'approved' && (
                 <button
                   onClick={() => {
                     setConfirm({
@@ -704,7 +802,7 @@ const Calendar = () => {
                       loading: false
                     });
                   }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all shadow-sm"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all shadow-sm flex-1"
                   style={{ backgroundColor: '#4CAF50', color: '#ffffff' }}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#45a049'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4CAF50'}
@@ -712,8 +810,31 @@ const Calendar = () => {
                   <RefreshCw size={18} />
                   Sincronizar con Google
                 </button>
-              </div>
-            )}
+              )}
+              <button
+                onClick={() => {
+                  setConfirm({
+                    open: true,
+                    action: 'delete',
+                    payload: selectedQuotation._id,
+                    loading: false
+                  });
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all shadow-sm border-2"
+                style={{ borderColor: '#E57373', color: '#E57373', backgroundColor: '#ffffff' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#FFEBEE';
+                  e.currentTarget.style.borderColor = '#EF5350';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.borderColor = '#E57373';
+                }}
+              >
+                <Trash2 size={18} />
+                Eliminar Evento
+              </button>
+            </div>
           </div>
         </Modal>
       )}
@@ -735,6 +856,7 @@ const Calendar = () => {
         title={
           confirm.action === 'unlink' ? 'Desvincular Google Calendar' :
           confirm.action === 'sync' ? 'Sincronizar con Google Calendar' :
+          confirm.action === 'delete' ? 'Eliminar Evento' :
           confirm.action === 'accept' ? 'Aceptar Solicitud' :
           confirm.action === 'reject' ? 'Rechazar Solicitud' : ''
         }
@@ -743,6 +865,8 @@ const Calendar = () => {
             ? '¿Estás seguro de que deseas desvincular tu cuenta de Google Calendar? Perderás la sincronización automática de eventos.'
             : confirm.action === 'sync'
             ? '¿Deseas sincronizar este evento con tu Google Calendar? Aparecerá en tu calendario personal.'
+            : confirm.action === 'delete'
+            ? '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer y el evento será eliminado de tu calendario local y de Google Calendar si está sincronizado.'
             : confirm.action === 'accept'
             ? '¿Deseas aceptar esta solicitud? Se creará una cotización aprobada y el evento se programará en tu calendario.'
             : confirm.action === 'reject'
@@ -752,6 +876,7 @@ const Calendar = () => {
         confirmText={
           confirm.action === 'unlink' ? 'Desvincular' :
           confirm.action === 'sync' ? 'Sincronizar' :
+          confirm.action === 'delete' ? 'Eliminar' :
           confirm.action === 'accept' ? 'Aceptar' :
           confirm.action === 'reject' ? 'Rechazar' : 'Confirmar'
         }
