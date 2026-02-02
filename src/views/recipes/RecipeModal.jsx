@@ -18,6 +18,7 @@ const CloseIcon = ({ className = "w-5 h-5" }) => (
     <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
+
 const UNIT_LABELS = {
   g: "gramos",
   kg: "kilogramos",
@@ -46,12 +47,12 @@ const RecipeModal = ({
     description: "",
     ingredients: [],
     instructions: [],
-    image: null,
+    imageFile: null, // archivo nuevo
+    imageUrl: "", // URL imagen existente
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [allIngredients, setAllIngredients] = useState([]);
-  //const [selectedIngredientId, setSelectedIngredientId] = useState("");
   const [showIngredientModal, setShowIngredientModal] = useState(false);
 
   useEffect(() => {
@@ -70,6 +71,27 @@ const RecipeModal = ({
     }
   }, [isOpen]);
 
+  // Carga datos al abrir modal o cambiar initialData
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setForm({
+          name: initialData.name || "",
+          category: initialData.category || "cocktail",
+          servings: initialData.servings || 1,
+          description: initialData.description || "",
+          ingredients: initialData.ingredients || [],
+          instructions: initialData.instructions || [],
+          imageFile: null,
+          imageUrl: initialData.image || "", // ajustar según estructura de tu API
+        });
+      } else {
+        resetForm();
+        setForm((p) => ({ ...p, imageFile: null, imageUrl: "" }));
+      }
+    }
+  }, [isOpen, initialData]);
+
   const resetForm = () => {
     setForm({
       name: "",
@@ -78,6 +100,8 @@ const RecipeModal = ({
       description: "",
       ingredients: [],
       instructions: [],
+      imageFile: null,
+      imageUrl: "",
     });
   };
 
@@ -148,7 +172,7 @@ const RecipeModal = ({
           !isNaN(ing.quantity) &&
           Number(ing.quantity) > 0 &&
           ing.unit &&
-          ing.unit.trim() !== "",
+          ing.unit.trim() !== ""
       )
       .map(({ _id, productId, ingredientName, quantity, unit }) => ({
         _id: _id || "",
@@ -180,12 +204,12 @@ const RecipeModal = ({
     formData.append("category", form.category);
     formData.append("servings", form.servings);
     formData.append("description", form.description);
-
     formData.append("ingredients", JSON.stringify(validIngredients));
     formData.append("instructions", JSON.stringify(validInstructions));
 
-    if (form.image) {
-      formData.append("image", form.image);
+    // Solo adjuntar archivo nuevo si hay
+    if (form.imageFile) {
+      formData.append("image", form.imageFile);
     }
 
     try {
@@ -475,7 +499,7 @@ const RecipeModal = ({
 const ImageUpload = ({ form, setForm }) => {
   const handleFile = (file) => {
     if (!file) return;
-    setForm((p) => ({ ...p, image: file }));
+    setForm((p) => ({ ...p, imageFile: file, imageUrl: "" }));
   };
 
   return (
@@ -496,15 +520,10 @@ const ImageUpload = ({ form, setForm }) => {
         onChange={(e) => handleFile(e.target.files[0])}
       />
 
-      {!form.image ? (
-        <div className="text-gray-400 text-sm px-4">
-          <p className="font-medium">Arrastra una imagen</p>
-          <p>o haz click para subir</p>
-        </div>
-      ) : (
+      {!form.imageFile && form.imageUrl ? (
         <div className="relative w-full h-full">
           <img
-            src={URL.createObjectURL(form.image)}
+            src={form.imageUrl}
             alt="Preview"
             className="w-full h-full object-cover rounded-lg"
           />
@@ -512,12 +531,35 @@ const ImageUpload = ({ form, setForm }) => {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              setForm((p) => ({ ...p, image: null }));
+              setForm((p) => ({ ...p, imageUrl: "", imageFile: null }));
             }}
             className="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full px-2"
           >
             ✕
           </button>
+        </div>
+      ) : form.imageFile ? (
+        <div className="relative w-full h-full">
+          <img
+            src={URL.createObjectURL(form.imageFile)}
+            alt="Preview"
+            className="w-full h-full object-cover rounded-lg"
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setForm((p) => ({ ...p, imageFile: null }));
+            }}
+            className="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full px-2"
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <div className="text-gray-400 text-sm px-4">
+          <p className="font-medium">Arrastra una imagen</p>
+          <p>o haz click para subir</p>
         </div>
       )}
     </div>
