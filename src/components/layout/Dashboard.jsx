@@ -130,12 +130,12 @@ const Dashboard = () => {
             <ChefHat size={22} style={{ color: '#D4B5A5' }} />
           )}
           {!isMobile && (
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-md hover:bg-gray-100">
-              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-md hover:bg-gray-100 ml-auto">
+              {sidebarOpen ? <Menu size={18} /> : <Menu size={18} />}
             </button>
           )}
-          {isMobile && (
-            <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-md hover:bg-gray-100">
+          {isMobile && sidebarOpen && (
+            <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-md hover:bg-gray-100 ml-auto">
               <X size={18} />
             </button>
           )}
