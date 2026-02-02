@@ -53,6 +53,11 @@ const responseSuccessInterceptor = (response) => {
 };
 
 const responseErrorInterceptor = (error) => {
+  const config = error?.config || {};
+  const requestUrl = config.url || '';
+  // Consideramos rutas de auth como: /auth/...
+  const isAuthRoute = requestUrl.startsWith('/auth') || requestUrl.includes('/auth/');
+
   // Si hay respuesta del servidor, tratamos el error como siempre
   if (error.response) {
     const { status, data } = error.response;
@@ -67,9 +72,28 @@ const responseErrorInterceptor = (error) => {
     }
 
     if (status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      // No forzamos logout/redirect para rutas de auth (ej: login incorrecto)
+      try {
+        const messageLower = (responseData && responseData.message ? String(responseData.message).toLowerCase() : '');
+        const tokenIssue = /token|jwt|expired|invalid|unauthorized/.test(messageLower);
+
+        // Si es ruta de auth, no limpiamos token (login fallido, register, etc.)
+        if (isAuthRoute) {
+          // permitimos que la UI de login maneje el mensaje
+        } else if (tokenIssue) {
+          // Si el servidor indica explícitamente que el token es inválido/expiró, eliminamos credenciales y redirigimos
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        } else {
+          // No eliminar token por 401 genérico. Logueamos para debug y devolvemos el error.
+          console.warn('401 recibido pero no identificado como fallo de token:', messageLower, 'url:', requestUrl);
+        }
+      } catch (e) {
+        console.error('Error procesando 401:', e);
+      }
     }
 
     if (status === 403) {
